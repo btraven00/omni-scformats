@@ -134,13 +134,31 @@ TAIL_TMPL = """
       - {id: dims_seurat, software_environment: readers, repository: *local_validate}
 
   # Global fan-in: one table, one row per (test case, tool).
+  # The paper's own matrix fidelity, as published: per RDS case, every tool's
+  # h5ad X vs crosscell's (by position, 7 metrics). Reported beside ours.
+  - id: PAPER_FIDELITY
+    gather:
+      - from: out_h5ad
+        group_by: RDS
+    outputs:
+      - {id: paper_fidelity, path: "{RDS}.paper_fidelity.json"}
+    modules:
+      - id: compute_fidelity
+        software_environment: tools
+        repository: {url: ".", commit: HEAD, entrypoint: paper_fidelity}
+
   - id: SUMMARY
     gather:
       - from: perf
       - from: check
+      - from: paper_fidelity
     outputs:
       - {id: results_tsv, path: "results.tsv"}
-      - {id: pass_rates_md, path: "pass_rates.md"}
+      - {id: tables_md, path: "tables.md"}
+      - {id: tools_png, path: "tools.png"}
+      - {id: tools_svg, path: "tools.svg"}
+      - {id: phases_png, path: "phases.png"}
+      - {id: phases_svg, path: "phases.svg"}
     modules:
       - id: tables
         software_environment: py
@@ -153,7 +171,14 @@ def with_env(blocks, env):
     return "".join(b.replace("        repository:", f"        software_environment: {'readers' if '- id: scx' in b else env}\n        repository:", 1) for b in blocks)
 
 
-print(HEAD + with_env(data_modules(tc["rds_to_h5ad"]), "py")
+# The paper's type-fidelity object (modules/typetest.R), as one more RDS case.
+TYPE_TEST = """      - id: type_test
+        name: "CrossCell type-fidelity object (50 cells, 5 typed columns)"
+        software_environment: tools
+        repository: {url: ".", commit: HEAD, entrypoint: typetest}
+"""
+
+print(HEAD + with_env(data_modules(tc["rds_to_h5ad"]), "py") + TYPE_TEST
       + MID + with_env(data_modules(tc["h5ad_to_rds"]), "py")
       + TAIL_TMPL % (with_env(tools(["crosscell", "zellkonverter", "anndataR", "convert2anndata", "easySCF", "scx"]), "tools"),
                      with_env(tools(["crosscell", "zellkonverter", "anndataR", "scx"]), "tools")), end="")

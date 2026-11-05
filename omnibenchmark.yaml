@@ -3,3 +3,5 @@ entrypoints:
   convert: modules/convert.py
   validate: modules/validate.py
   summary: modules/summary.py
+  typetest: modules/typetest.R
+  paper_fidelity: modules/paper_fidelity.py

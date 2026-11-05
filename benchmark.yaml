@@ -255,6 +255,10 @@ stages:
         repository: *local_data
         parameters:
           - {file: "seurat_v5_ssHippo_processed.rds"}
+      - id: type_test
+        name: "CrossCell type-fidelity object (50 cells, 5 typed columns)"
+        software_environment: tools
+        repository: {url: ".", commit: HEAD, entrypoint: typetest}
 
   - id: H5AD
     outputs:
@@ -419,13 +423,31 @@ stages:
       - {id: dims_seurat, software_environment: readers, repository: *local_validate}
 
   # Global fan-in: one table, one row per (test case, tool).
+  # The paper's own matrix fidelity, as published: per RDS case, every tool's
+  # h5ad X vs crosscell's (by position, 7 metrics). Reported beside ours.
+  - id: PAPER_FIDELITY
+    gather:
+      - from: out_h5ad
+        group_by: RDS
+    outputs:
+      - {id: paper_fidelity, path: "{RDS}.paper_fidelity.json"}
+    modules:
+      - id: compute_fidelity
+        software_environment: tools
+        repository: {url: ".", commit: HEAD, entrypoint: paper_fidelity}
+
   - id: SUMMARY
     gather:
       - from: perf
       - from: check
+      - from: paper_fidelity
     outputs:
       - {id: results_tsv, path: "results.tsv"}
-      - {id: pass_rates_md, path: "pass_rates.md"}
+      - {id: tables_md, path: "tables.md"}
+      - {id: tools_png, path: "tools.png"}
+      - {id: tools_svg, path: "tools.svg"}
+      - {id: phases_png, path: "phases.png"}
+      - {id: phases_svg, path: "phases.svg"}
     modules:
       - id: tables
         software_environment: py

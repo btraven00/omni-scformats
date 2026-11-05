@@ -2,3 +2,4 @@ name: crosscell-repro-py
 channels: [conda-forge]
 dependencies:
   - python=3.12
+  - matplotlib-base
