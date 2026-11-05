@@ -45,7 +45,7 @@ def fmt_mb(mb):
 
 def collect(rows):
     """(dir, tool) -> dict(n, ok, faithful, wall[], rss[], phases{name: (secs[], mb[])})"""
-    agg = defaultdict(lambda: {"n": 0, "ok": 0, "faithful": 0, "wall": [], "rss": [],
+    agg = defaultdict(lambda: {"n": 0, "ok": 0, "faithful": 0, "wall": [], "rss": [], "work": [],
                                "phases": defaultdict(lambda: ([], []))})
     for (case, _), r in rows.items():
         if case == "type_test":
@@ -57,6 +57,9 @@ def collect(rows):
             continue
         a["ok"] += 1
         a["wall"].append(r["conversion_time_seconds"])
+        # wall minus start-up: R + package loading for the R tools (obkit `load`);
+        # the binaries have none to subtract
+        a["work"].append(r["conversion_time_seconds"] - r.get("phases", {}).get("load", [0])[0])
         a["rss"].append(r["peak_memory_mb"])
         per = defaultdict(lambda: [0.0, 0.0])
         for raw, (secs, mb) in r.get("phases", {}).items():
@@ -136,16 +139,19 @@ def tables(agg):
     md = ["# CrossCell benchmark, reproduced", "",
           "Per tool and direction: cases converted / cases, cases passing every fidelity property,",
           "then wall time and peak RSS (GNU time ru_maxrss) as the median over converted cases of",
-          "each case's median of 3 runs; range = min–max over those cases.", ""]
+          "each case's median of 3 runs; range = min–max over those cases. \"excl. start-up\" subtracts",
+          "R + package loading (4–10 s per run), which a user converting inside an R session",
+          "doesn't pay. The 42 rds cases are 11 datasets in up to 4 variants (v4/v5 × raw/processed),",
+          "so per-dataset n is 11, not 42.", ""]
     for d, label in DIRS.items():
-        md += [f"## {label}", "", "| tool | converted | faithful | wall | range | peak RSS |",
-               "|---|--:|--:|--:|--:|--:|"]
+        md += [f"## {label}", "", "| tool | converted | faithful | wall | excl. start-up | range | peak RSS |",
+               "|---|--:|--:|--:|--:|--:|--:|"]
         for t in TOOLS:
             a = agg.get((d, t))
             if not a:
                 continue
-            w = (f"{fmt_s(st.median(a['wall']))} | {min(a['wall']):.1f}–{max(a['wall']):.1f} | "
-                 f"{fmt_mb(st.median(a['rss']))}") if a["wall"] else "| |"
+            w = (f"{fmt_s(st.median(a['wall']))} | {fmt_s(st.median(a['work']))} | "
+                 f"{min(a['wall']):.1f}–{max(a['wall']):.1f} | {fmt_mb(st.median(a['rss']))}") if a["wall"] else "| | |"
             md.append(f"| {t} | {a['ok']}/{a['n']} | {a['faithful']}/{a['n']} | {w} |")
         md.append("")
     md += ["## By phase", "",

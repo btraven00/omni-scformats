@@ -26,6 +26,9 @@ scripts/run.sh --cores 32                                 # full run, on omni or
 scripts/run.sh --cores 8 --filter slice.obfilter.yaml     # small slice for a laptop
 ```
 
+For timings worth quoting, `scripts/seq_timing.sh` re-runs every conversion one at a time
+(into `out-seq/`, ~5 h on hainan) and swaps those timings into `out/`.
+
 The slice only needs `scripts/fetch.sh h5ad_small seurat_v5`. Results end up in
 `out/SUMMARY.tables.*/`: `results.tsv` (one row per case and tool) and `pass_rates.md`.
 

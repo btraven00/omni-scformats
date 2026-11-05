@@ -1,0 +1,8 @@
+# Sequential timing pass: data + conversions only (no checks, paper fidelity or
+# summary). Run by scripts/seq_timing.sh with --cores 2: every job declares 2
+# cores, so exactly one conversion runs at a time.
+picks:
+  RDS: {'*': all}
+  H5AD: {'*': all}
+  TO_H5AD: {'*': all}
+  TO_SEURAT: {'*': all}

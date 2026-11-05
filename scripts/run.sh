@@ -12,5 +12,6 @@ cd "$(dirname "$0")/.."
 OB="${OB:-$HOME/lab/omnibenchmark/.venv/bin/ob}"
 unset VIRTUAL_ENV
 $OB run benchmark.yaml --dry --dirty "$@" >/dev/null
-cp envs/tools.post-deploy.sh out/.envs/tools.post-deploy.sh
+out=out; prev=""; for a in "$@"; do [[ "$prev" == "--out-dir" ]] && out="$a"; prev="$a"; done
+cp envs/tools.post-deploy.sh "$out/.envs/tools.post-deploy.sh"
 exec $OB run benchmark.yaml --dirty -k "$@"
