@@ -238,6 +238,8 @@ def fig_phases(agg, path):
     for a in axes:
         style(a)
     used = []
+    # widest bar, so a segment is labelled only where its number fits
+    xmax = max(sum(st.median(v[0]) for v in agg[(d, t)]["phases"].values() if v[0]) for t, d in rows)
     for y, (t, d) in enumerate(rows):
         left, ph = 0.0, agg[(d, t)]["phases"]
         for k, (pname, _, color) in enumerate(PHASES):
@@ -246,7 +248,7 @@ def fig_phases(agg, path):
                 continue
             w = st.median(secs)
             ax.barh(y, w, left=left, height=0.62, color=color, edgecolor=SURFACE, linewidth=2)
-            if w > 0.08 * max(1.0, ax.get_xlim()[1]):
+            if w > 0.06 * xmax:
                 ax.text(left + w / 2, y, f"{w:.1f}", ha="center", va="center", fontsize=8, color="#ffffff")
             if mb:
                 dy = (k - (len(PHASES) - 1) / 2) * 0.14
