@@ -2,11 +2,11 @@
 
 The [CrossCell](https://github.com/biodancerwangzhi/crosscell) conversion benchmark, rerun as an
 omnibenchmark plan (api 0.8). Same 55 test cases from the same Zenodo record, same five tools
-with their original commands, plus scx.
+with their original commands, plus scx and scConvert's C CLI (h5ad → h5seurat only).
 
 ```
 RDS (42) --> TO_H5AD   (crosscell zellkonverter anndataR convert2anndata easySCF scx) --> CHECK_H5AD   --+
-H5AD (13) -> TO_SEURAT (crosscell zellkonverter anndataR scx)                            --> CHECK_SEURAT -+-> SUMMARY
+H5AD (13) -> TO_SEURAT (crosscell zellkonverter anndataR scx scConvert)                  --> CHECK_SEURAT -+-> SUMMARY
 ```
 
 ## Run
@@ -21,6 +21,7 @@ export CROSSCELL_BIN=$PWD/data/crosscell   # the paper's prebuilt 0.1.0, from cr
 micromamba create -y -p data/scx-env -c conda-forge -c https://prefix.dev/edge scx=0.5.0.post147
 export SCX_BIN=$PWD/data/scx-env/bin/scx
 export DENET=$(command -v denet)
+export SCCONVERT_BIN=<scConvert>/src/scconvert   # git clone mianaz/scConvert; cd src; make -f Makefile.cli (ecab18f)
 
 scripts/run.sh --cores 32                                 # full run, on omni or hainan
 scripts/run.sh --cores 8 --filter slice.obfilter.yaml     # small slice for a laptop

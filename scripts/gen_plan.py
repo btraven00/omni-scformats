@@ -169,8 +169,8 @@ TAIL_TMPL = """
 
 
 def with_env(blocks, env):
-    # scx runs in `readers`: it needs only python, the CLI is side-loaded.
-    return "".join(b.replace("        repository:", f"        software_environment: {'readers' if '- id: scx' in b else env}\n        repository:", 1) for b in blocks)
+    # The side-loaded binaries (scx, scConvert) need only python: `readers`.
+    return "".join(b.replace("        repository:", f"        software_environment: {'readers' if ('- id: scx' in b or '- id: scConvert' in b) else env}\n        repository:", 1) for b in blocks)
 
 
 # The paper's type-fidelity object (modules/typetest.R), as one more RDS case.
@@ -183,4 +183,4 @@ TYPE_TEST = """      - id: type_test
 print(HEAD + with_env(data_modules(tc["rds_to_h5ad"]), "py") + TYPE_TEST
       + MID + with_env(data_modules(tc["h5ad_to_rds"]), "py")
       + TAIL_TMPL % (with_env(tools(["crosscell", "zellkonverter", "anndataR", "convert2anndata", "easySCF", "scx"]), "tools"),
-                     with_env(tools(["crosscell", "zellkonverter", "anndataR", "scx"]), "tools")), end="")
+                     with_env(tools(["crosscell", "zellkonverter", "anndataR", "scx", "scConvert"]), "tools")), end="")

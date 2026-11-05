@@ -21,7 +21,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
-TOOLS = ["scx", "crosscell", "anndataR", "zellkonverter", "convert2anndata", "easySCF"]
+TOOLS = ["scx", "scConvert", "crosscell", "anndataR", "zellkonverter", "convert2anndata", "easySCF"]
 DIRS = {"rds_to_h5ad": "Seurat .rds → h5ad", "h5ad_to_rds": "h5ad → Seurat-readable"}
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 DIR_COLOR = {"rds_to_h5ad": "#2a78d6", "h5ad_to_rds": "#eb6834"}
@@ -281,9 +281,9 @@ def fig_phases(agg, path):
 
 
 # ---- the paper's fig3 (notebooks/fig3_performance.ipynb), from our runs, plus scx ----
-TOOL_COLOR = {"scx": "#2a78d6", "crosscell": "#eb6834", "anndataR": "#1baf7a",
+TOOL_COLOR = {"scx": "#2a78d6", "scConvert": "#7b5ea7", "crosscell": "#eb6834", "anndataR": "#1baf7a",
               "zellkonverter": "#eda100", "convert2anndata": "#e87ba4", "easySCF": "#008300"}
-TOOL_MARKER = {"scx": "o", "crosscell": "o", "zellkonverter": "s", "anndataR": "^",
+TOOL_MARKER = {"scx": "o", "scConvert": "P", "crosscell": "o", "zellkonverter": "s", "anndataR": "^",
                "convert2anndata": "D", "easySCF": "v"}
 # nnz and v4/v5 x raw/processed per case, from the paper's config. Its nnz match
 # scx's own total_nnz on every case scx converted (43); cellxgene_pbmc_15k has
@@ -393,7 +393,7 @@ def fig_paper3(rows, path):
     # D: h5ad -> Seurat, paired times against zellkonverter (log-log).
     zk = ok[("h5ad_to_rds", "zellkonverter")]
     pts = []
-    for t in ["crosscell", "scx"]:
+    for t in ["crosscell", "scx", "scConvert"]:
         tr = ok[("h5ad_to_rds", t)]
         pr = [(tr[c]["conversion_time_seconds"], zk[c]["conversion_time_seconds"]) for c in tr if c in zk]
         if not pr:

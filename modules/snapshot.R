@@ -39,38 +39,74 @@ matrix_ <- function(k, name, m, dtype) {
 }
 
 if (grepl("\\.h5seurat$", f)) {
-  suppressPackageStartupMessages({ library(rhdf5); library(BPCells) })
+  # Two layouts in this benchmark. scx: root cell.names, BPCells-packed
+  # assays/<a>/<layer>, assays/<a>/meta.features. scConvert (Seurat v5 style):
+  # cell names in meta.data/<_index>, dgCMatrix groups (data/indices/indptr +
+  # dims) under assays/<a>/layers/<layer>, feature metadata in a root `var`.
+  suppressPackageStartupMessages({ library(rhdf5); library(BPCells); library(Matrix) })
   l <- h5ls(f)
+  path <- paste0(sub("/$", "", l$group), "/", l$name)
+  has <- function(p) p %in% path
+  attrs <- function(p) tryCatch(h5readAttributes(f, p), error = function(e) list())
   assays <- l$name[l$group == "/assays" & l$otype == "H5I_GROUP"]
-  act <- tryCatch(h5readAttributes(f, "/")[["active.assay"]], error = function(e) NULL)
+  act <- attrs("/")[["active.assay"]]
   act <- if (is.null(act)) assays[1] else act
-  writeLines(as.character(h5read(f, "cell.names")), file.path(out, "obs_names.txt"))
+  idx <- attrs("/meta.data")[["_index"]]
+  cells <- as.character(h5read(f, if (has("/cell.names")) "cell.names" else paste0("meta.data/", idx)))
+  writeLines(cells, file.path(out, "obs_names.txt"))
   writeLines(as.character(h5read(f, paste0("assays/", act, "/features"))), file.path(out, "var_names.txt"))
-  # A data.frame group: one dataset per column, factors as a group of 1-based
-  # `values` + `levels` (SeuratDisk layout). Column order from `colnames`.
+  # A data.frame group. Column order from `colnames` (SeuratDisk) or
+  # `column-order` (anndata); factors are levels + 1-based values (SeuratDisk)
+  # or categories + 0-based codes, -1 = NA (anndata).
   read_df <- function(g) {
-    if (!any(paste0(l$group, "/", l$name) == g | paste0(l$group, l$name) == g)) return(data.frame())
-    cols <- as.character(h5readAttributes(f, g)[["colnames"]])
+    if (!has(g)) return(data.frame())
+    a <- attrs(g)
+    cols <- as.character(c(a[["colnames"]], a[["column-order"]]))
+    if (!length(cols)) cols <- setdiff(l$name[l$group == g], c(a[["_index"]], "_index", "__categories"))
     df <- lapply(cols, function(c) {
-      if (l$otype[l$group == g & l$name == c] == "H5I_GROUP") {
-        lv <- as.character(h5read(f, paste0(g, "/", c, "/levels")))
-        factor(lv[as.integer(h5read(f, paste0(g, "/", c, "/values")))], levels = lv)
-      } else as.vector(h5read(f, paste0(g, "/", c)))
+      q <- paste0(g, "/", c)
+      if (l$otype[path == q] == "H5I_GROUP") {
+        kids <- l$name[l$group == q]
+        if ("levels" %in% kids) {
+          lv <- as.character(h5read(f, paste0(q, "/levels")))
+          factor(lv[as.integer(h5read(f, paste0(q, "/values")))], levels = lv)
+        } else {
+          lv <- as.character(h5read(f, paste0(q, "/categories")))
+          codes <- as.integer(h5read(f, paste0(q, "/codes")))
+          factor(ifelse(codes < 0, NA, lv[codes + 1L]), levels = lv)
+        }
+      } else {
+        x <- h5read(f, q)
+        # rhdf5 returns HDF5 booleans (h5py's FALSE/TRUE enum) as text
+        if (l$dclass[path == q] == "ENUM" && all(as.character(x) %in% c("FALSE", "TRUE", NA)))
+          as.logical(as.character(x)) else as.vector(x)
+      }
     })
     names(df) <- cols
     as.data.frame(df, check.names = FALSE, stringsAsFactors = FALSE)
   }
   columns(file.path(out, "obs"), read_df("/meta.data"))
-  columns(file.path(out, "var"), read_df(paste0("/assays/", act, "/meta.features")))
+  vg <- paste0("/assays/", act, "/meta.features")
+  columns(file.path(out, "var"), read_df(if (has(vg)) vg else "/var"))
   k <- 0L
-  for (a in assays) for (lay in l$name[l$group == paste0("/assays/", a) & l$otype == "H5I_GROUP"]) {
-    if (lay == "meta.features") next
-    g <- paste0("assays/", a, "/", lay)
-    m <- open_matrix_hdf5(f, g)
+  for (a in assays) {
     feats <- as.character(h5read(f, paste0("assays/", a, "/features")))
-    cells <- as.character(h5read(f, "cell.names"))
-    m <- as(m, "dgCMatrix"); dimnames(m) <- list(feats, cells)
-    matrix_(k, paste0(a, "/", lay), m, "h5seurat:bpcells"); k <- k + 1L
+    base <- paste0("/assays/", a)
+    groups <- c(l$name[l$group == base & l$otype == "H5I_GROUP"])
+    if ("layers" %in% groups) groups <- c(setdiff(groups, "layers"),
+                                          paste0("layers/", l$name[l$group == paste0(base, "/layers")]))
+    for (lay in setdiff(groups, "meta.features")) {
+      g <- paste0(base, "/", lay)
+      kids <- l$name[l$group == g]
+      m <- if (all(c("data", "indices", "indptr") %in% kids)) {
+        d <- as.integer(attrs(g)[["dims"]])
+        new("dgCMatrix", i = as.integer(h5read(f, paste0(g, "/indices"))),
+            p = as.integer(h5read(f, paste0(g, "/indptr"))),
+            x = as.double(h5read(f, paste0(g, "/data"))), Dim = d)
+      } else as(open_matrix_hdf5(f, sub("^/", "", g)), "dgCMatrix")
+      dimnames(m) <- list(feats, cells)
+      matrix_(k, paste0(a, "/", sub("^layers/", "", lay)), m, "h5seurat"); k <- k + 1L
+    }
   }
 } else {
   suppressPackageStartupMessages(library(SeuratObject))

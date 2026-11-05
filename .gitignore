@@ -2,3 +2,4 @@ data/
 out/
 .snakemake/
 __pycache__/
+out-seq/

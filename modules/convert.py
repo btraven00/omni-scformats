@@ -50,7 +50,15 @@ def cmd_scx(i, o, d):
     return [os.environ.get("SCX_BIN", "scx"), "convert", i, o]
 
 
-NATIVE = {"scx": ".h5seurat"}  # h5ad -> Seurat: what each tool writes; default .rds
+def cmd_scConvert(i, o, d):
+    # scConvert's C CLI (github.com/mianaz/scConvert, ecab18f): h5ad -> h5seurat
+    # with no R, as in scx-bench-omni. Its .rds routes need its R package: not here.
+    if d != "h5ad_to_rds":
+        return None
+    return [os.environ.get("SCCONVERT_BIN", "scconvert"), i, o, "--overwrite"]
+
+
+NATIVE = {"scx": ".h5seurat", "scConvert": ".h5seurat"}  # h5ad -> Seurat: what each tool writes; default .rds
 
 
 def cmd_zellkonverter(i, o, d):

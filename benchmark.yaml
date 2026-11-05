@@ -401,6 +401,11 @@ stages:
         repository: *local_convert
         parameters:
           - {tool: scx, runs: 3, timeout: 600}
+      - id: scConvert
+        software_environment: readers
+        repository: *local_convert
+        parameters:
+          - {tool: scConvert, runs: 3, timeout: 600}
 
   # Fidelity check (the original checked n_cells x n_genes only). Input and
   # output are read by their format's own reader (anndata; readRDS +
