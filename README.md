@@ -44,9 +44,10 @@ Results: `out/SUMMARY.tables.*/results.tsv` (one row per case x tool, phases as 
   an interchange format (scx `docs/rds-write.md`), and opening the file is the consumer's job,
   not the converter's. The original tools keep writing `.rds`. TO_SEURAT's declared
   `<tool>.seurat` is a symlink to what the tool wrote.
-- **Validation** uses each format's own reader in R/Python (`anndata`, `readRDS` +
-  SeuratObject, `BPCells::open_matrix_hdf5` for `.h5seurat`); the original tried `crosscell
-  inspect` first for RDS.
+- **Validation** reads input and output with the format's own reader (`anndata`, `readRDS` +
+  SeuratObject, `BPCells::open_matrix_hdf5` for `.h5seurat`) and compares n_cells x n_genes.
+  The original compared against its test matrix, whose dims are wrong for 4 of 13 h5ad cases
+  (`scanpy_pbmc3k_processed`, the 3 CELLxGENE files), and tried `crosscell inspect` first.
 - **Versions.** Current releases, not the paper's: conda envs, unpinned, instead of its Docker
   image (e.g. anndataR 1.2.x vs the paper's 1.0.0, Seurat 5.5 vs 5.4). The paper's pass rates
   are a baseline to compare against, not a target. convert2anndata and easySCFr are GitHub-only

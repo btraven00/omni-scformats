@@ -19,7 +19,7 @@ def data_modules(cases):
             f"      - id: {mid}\n"
             f"        repository: *local_data\n"
             f"        parameters:\n"
-            f"          - {{file: \"{c['file']}\", n_cells: {c['n_cells']}, n_genes: {c['n_genes']}}}\n"
+            f"          - {{file: \"{c['file']}\"}}\n"
         )
 
 
@@ -76,15 +76,10 @@ local_validate: &local_validate {url: ".", commit: HEAD, entrypoint: validate}
 
 stages:
   # Stage the inputs: hardlink out of $CROSSCELL_DATA (scripts/fetch.sh) and
-  # check sha256 against the Zenodo manifest. `*_expected` carries the test
-  # matrix's n_cells x n_genes, which VALIDATE checks the output against.
-  # Two expected ids, not one shared `expected`: ob 0.7.0.post10 binds a shared
-  # id to its first-declared producer only (010 §3.1 says alternatives), and
-  # rejects CHECK_SEURAT. Merge back once fixed.
+  # check sha256 against the Zenodo manifest.
   - id: RDS
     outputs:
       - {id: rds, path: "{module.id}.rds"}
-      - {id: rds_expected, path: "{module.id}.expected.json"}
     modules:
 """
 
@@ -92,7 +87,6 @@ MID = """
   - id: H5AD
     outputs:
       - {id: h5ad, path: "{module.id}.h5ad"}
-      - {id: h5ad_expected, path: "{module.id}.expected.json"}
     modules:
 """
 
@@ -120,16 +114,19 @@ TAIL_TMPL = """
     modules:
 %s
   # Output check, as crosscell's validate_output.py: open the file with the
-  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes.
+  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes,
+  # compared with the input read the same way. Not with the test matrix's
+  # numbers: 4 of its 13 h5ad cases list wrong dims (e.g. scanpy_pbmc3k_processed
+  # 2700 cells; the file has 2638).
   - id: CHECK_H5AD
-    inputs: [out_h5ad, rds_expected]
+    inputs: [out_h5ad, rds]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:
       - {id: dims_h5ad, software_environment: readers, repository: *local_validate}
 
   - id: CHECK_SEURAT
-    inputs: [out_seurat, h5ad_expected]
+    inputs: [out_seurat, h5ad]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:

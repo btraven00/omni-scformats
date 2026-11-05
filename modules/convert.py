@@ -205,7 +205,8 @@ def measure(cmd, timeout, tag, out_dir):
     start = time.time()
     try:
         r = subprocess.run(full, capture_output=True, text=True, timeout=timeout,
-                           env={**os.environ, "OBKIT_DIR": str(obkit_dir)})
+                           # one python for R tools too, as the paper's Docker image
+                           env={**os.environ, "OBKIT_DIR": str(obkit_dir), "RETICULATE_PYTHON": sys.executable})
     except subprocess.TimeoutExpired:
         return False, timeout, 0.0, "TIMEOUT", {}
     elapsed = time.time() - start

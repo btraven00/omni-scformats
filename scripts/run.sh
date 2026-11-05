@@ -7,7 +7,10 @@
 # yaml before snakemake creates the env.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-OB="${OB:-uv run --project $HOME/lab/omnibenchmark ob}"
+# The venv's ob binary, not `uv run`: an activated venv leaks into every rule
+# (reticulate and `python3` then pick the venv's python, not the conda env's).
+OB="${OB:-$HOME/lab/omnibenchmark/.venv/bin/ob}"
+unset VIRTUAL_ENV
 $OB run benchmark.yaml --dry --dirty "$@" >/dev/null
 cp envs/tools.post-deploy.sh out/.envs/tools.post-deploy.sh
 exec $OB run benchmark.yaml --dirty -k "$@"

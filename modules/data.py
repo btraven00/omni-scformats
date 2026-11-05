@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage one test case: hardlink $CROSSCELL_DATA/data/generated/<file> (laid
 out by scripts/fetch.sh) and check its sha256 against the Zenodo manifest.
-Writes the test matrix's expected n_cells x n_genes next to it."""
+"""
 import hashlib, json, os, shutil, sys
 from pathlib import Path
 
@@ -23,15 +23,10 @@ with open(src, "rb") as f:
 if h.hexdigest() != want.get(one["file"]):
     sys.exit(f"sha256 mismatch for {src}: {h.hexdigest()} != {want.get(one['file'])}")
 
-exp_id = next(k for k in out if k.endswith("expected"))
-data_id = next(k for k in out if k != exp_id)
-dst = Path(out[data_id])
+dst = Path(next(iter(out.values())))
 dst.parent.mkdir(parents=True, exist_ok=True)
 dst.unlink(missing_ok=True)
 try:
     os.link(src, dst)  # same fs: no copy charged to the run
 except OSError:
     shutil.copy2(src, dst)
-Path(out[exp_id]).write_text(json.dumps({
-    "test_id": one["name"], "file": one["file"], "sha256": h.hexdigest(),
-    "n_cells": int(one["n_cells"]), "n_genes": int(one["n_genes"])}) + "\n")

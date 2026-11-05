@@ -40,297 +40,291 @@ local_validate: &local_validate {url: ".", commit: HEAD, entrypoint: validate}
 
 stages:
   # Stage the inputs: hardlink out of $CROSSCELL_DATA (scripts/fetch.sh) and
-  # check sha256 against the Zenodo manifest. `*_expected` carries the test
-  # matrix's n_cells x n_genes, which VALIDATE checks the output against.
-  # Two expected ids, not one shared `expected`: ob 0.7.0.post10 binds a shared
-  # id to its first-declared producer only (010 §3.1 says alternatives), and
-  # rejects CHECK_SEURAT. Merge back once fixed.
+  # check sha256 against the Zenodo manifest.
   - id: RDS
     outputs:
       - {id: rds, path: "{module.id}.rds"}
-      - {id: rds_expected, path: "{module.id}.expected.json"}
     modules:
       - id: v4_pbmc3k_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_pbmc3k_raw.rds", n_cells: 2700, n_genes: 13714}
+          - {file: "seurat_v4_pbmc3k_raw.rds"}
       - id: v4_pbmc3k_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_pbmc3k_processed.rds", n_cells: 2700, n_genes: 13714}
+          - {file: "seurat_v4_pbmc3k_processed.rds"}
       - id: v5_pbmc3k_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_pbmc3k_raw.rds", n_cells: 2700, n_genes: 13714}
+          - {file: "seurat_v5_pbmc3k_raw.rds"}
       - id: v5_pbmc3k_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_pbmc3k_processed.rds", n_cells: 2700, n_genes: 13714}
+          - {file: "seurat_v5_pbmc3k_processed.rds"}
       - id: v4_stxKidney_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_stxKidney_raw.rds", n_cells: 1438, n_genes: 31053}
+          - {file: "seurat_v4_stxKidney_raw.rds"}
       - id: v5_stxKidney_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_stxKidney_raw.rds", n_cells: 1438, n_genes: 31053}
+          - {file: "seurat_v5_stxKidney_raw.rds"}
       - id: v4_celegans_embryo_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_celegans.embryo_raw.rds", n_cells: 6188, n_genes: 20222}
+          - {file: "seurat_v4_celegans.embryo_raw.rds"}
       - id: v4_celegans_embryo_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_celegans.embryo_processed.rds", n_cells: 6188, n_genes: 20222}
+          - {file: "seurat_v4_celegans.embryo_processed.rds"}
       - id: v5_celegans_embryo_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_celegans.embryo_raw.rds", n_cells: 6188, n_genes: 20222}
+          - {file: "seurat_v5_celegans.embryo_raw.rds"}
       - id: v5_celegans_embryo_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_celegans.embryo_processed.rds", n_cells: 6188, n_genes: 20222}
+          - {file: "seurat_v5_celegans.embryo_processed.rds"}
       - id: v4_cbmc_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_cbmc_raw.rds", n_cells: 8617, n_genes: 20501}
+          - {file: "seurat_v4_cbmc_raw.rds"}
       - id: v4_cbmc_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_cbmc_processed.rds", n_cells: 8617, n_genes: 20501}
+          - {file: "seurat_v4_cbmc_processed.rds"}
       - id: v5_cbmc_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_cbmc_raw.rds", n_cells: 8617, n_genes: 20501}
+          - {file: "seurat_v5_cbmc_raw.rds"}
       - id: v5_cbmc_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_cbmc_processed.rds", n_cells: 8617, n_genes: 20501}
+          - {file: "seurat_v5_cbmc_processed.rds"}
       - id: v4_ifnb_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_ifnb_raw.rds", n_cells: 13999, n_genes: 14053}
+          - {file: "seurat_v4_ifnb_raw.rds"}
       - id: v4_ifnb_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_ifnb_processed.rds", n_cells: 13999, n_genes: 14053}
+          - {file: "seurat_v4_ifnb_processed.rds"}
       - id: v5_ifnb_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_ifnb_raw.rds", n_cells: 13999, n_genes: 14053}
+          - {file: "seurat_v5_ifnb_raw.rds"}
       - id: v5_ifnb_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_ifnb_processed.rds", n_cells: 13999, n_genes: 14053}
+          - {file: "seurat_v5_ifnb_processed.rds"}
       - id: v4_panc8_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_panc8_raw.rds", n_cells: 14890, n_genes: 34363}
+          - {file: "seurat_v4_panc8_raw.rds"}
       - id: v4_panc8_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_panc8_processed.rds", n_cells: 14890, n_genes: 34363}
+          - {file: "seurat_v4_panc8_processed.rds"}
       - id: v5_panc8_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_panc8_raw.rds", n_cells: 14890, n_genes: 34363}
+          - {file: "seurat_v5_panc8_raw.rds"}
       - id: v5_panc8_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_panc8_processed.rds", n_cells: 14890, n_genes: 34363}
+          - {file: "seurat_v5_panc8_processed.rds"}
       - id: v4_thp1_eccite_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_thp1.eccite_raw.rds", n_cells: 20729, n_genes: 18649}
+          - {file: "seurat_v4_thp1.eccite_raw.rds"}
       - id: v4_thp1_eccite_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_thp1.eccite_processed.rds", n_cells: 20729, n_genes: 18649}
+          - {file: "seurat_v4_thp1.eccite_processed.rds"}
       - id: v5_thp1_eccite_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_thp1.eccite_raw.rds", n_cells: 20729, n_genes: 18649}
+          - {file: "seurat_v5_thp1.eccite_raw.rds"}
       - id: v5_thp1_eccite_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_thp1.eccite_processed.rds", n_cells: 20729, n_genes: 18649}
+          - {file: "seurat_v5_thp1.eccite_processed.rds"}
       - id: v4_bmcite_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_bmcite_raw.rds", n_cells: 30672, n_genes: 17009}
+          - {file: "seurat_v4_bmcite_raw.rds"}
       - id: v4_bmcite_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_bmcite_processed.rds", n_cells: 30672, n_genes: 17009}
+          - {file: "seurat_v4_bmcite_processed.rds"}
       - id: v5_bmcite_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_bmcite_raw.rds", n_cells: 30672, n_genes: 17009}
+          - {file: "seurat_v5_bmcite_raw.rds"}
       - id: v5_bmcite_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_bmcite_processed.rds", n_cells: 30672, n_genes: 17009}
+          - {file: "seurat_v5_bmcite_processed.rds"}
       - id: v4_pbmcsca_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_pbmcsca_raw.rds", n_cells: 31021, n_genes: 33694}
+          - {file: "seurat_v4_pbmcsca_raw.rds"}
       - id: v4_pbmcsca_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_pbmcsca_processed.rds", n_cells: 31021, n_genes: 33694}
+          - {file: "seurat_v4_pbmcsca_processed.rds"}
       - id: v5_pbmcsca_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_pbmcsca_raw.rds", n_cells: 31021, n_genes: 33694}
+          - {file: "seurat_v5_pbmcsca_raw.rds"}
       - id: v5_pbmcsca_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_pbmcsca_processed.rds", n_cells: 31021, n_genes: 33694}
+          - {file: "seurat_v5_pbmcsca_processed.rds"}
       - id: v4_hcabm40k_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_hcabm40k_raw.rds", n_cells: 40000, n_genes: 17369}
+          - {file: "seurat_v4_hcabm40k_raw.rds"}
       - id: v4_hcabm40k_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_hcabm40k_processed.rds", n_cells: 40000, n_genes: 17369}
+          - {file: "seurat_v4_hcabm40k_processed.rds"}
       - id: v5_hcabm40k_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_hcabm40k_raw.rds", n_cells: 40000, n_genes: 17369}
+          - {file: "seurat_v5_hcabm40k_raw.rds"}
       - id: v5_hcabm40k_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_hcabm40k_processed.rds", n_cells: 40000, n_genes: 17369}
+          - {file: "seurat_v5_hcabm40k_processed.rds"}
       - id: v4_ssHippo_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_ssHippo_raw.rds", n_cells: 53173, n_genes: 23264}
+          - {file: "seurat_v4_ssHippo_raw.rds"}
       - id: v4_ssHippo_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v4_ssHippo_processed.rds", n_cells: 53173, n_genes: 23264}
+          - {file: "seurat_v4_ssHippo_processed.rds"}
       - id: v5_ssHippo_raw
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_ssHippo_raw.rds", n_cells: 53173, n_genes: 23264}
+          - {file: "seurat_v5_ssHippo_raw.rds"}
       - id: v5_ssHippo_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "seurat_v5_ssHippo_processed.rds", n_cells: 53173, n_genes: 23264}
+          - {file: "seurat_v5_ssHippo_processed.rds"}
 
   - id: H5AD
     outputs:
       - {id: h5ad, path: "{module.id}.h5ad"}
-      - {id: h5ad_expected, path: "{module.id}.expected.json"}
     modules:
       - id: scanpy_pbmc3k
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "scanpy_pbmc3k.h5ad", n_cells: 2700, n_genes: 32738}
+          - {file: "scanpy_pbmc3k.h5ad"}
       - id: scanpy_pbmc3k_processed
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "scanpy_pbmc3k_processed.h5ad", n_cells: 2700, n_genes: 1838}
+          - {file: "scanpy_pbmc3k_processed.h5ad"}
       - id: scvelo_dentategyrus
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "scvelo_dentategyrus.h5ad", n_cells: 2930, n_genes: 13913}
+          - {file: "scvelo_dentategyrus.h5ad"}
       - id: scvelo_pancreas
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "scvelo_pancreas.h5ad", n_cells: 3696, n_genes: 27998}
+          - {file: "scvelo_pancreas.h5ad"}
       - id: cellxgene_pbmc_15k
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "cellxgene_pbmc_15k.h5ad", n_cells: 15000, n_genes: 33694}
+          - {file: "cellxgene_pbmc_15k.h5ad"}
       - id: cellxgene_heart_23k
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "cellxgene_heart_23k.h5ad", n_cells: 23185, n_genes: 33694}
+          - {file: "cellxgene_heart_23k.h5ad"}
       - id: cellxgene_brain_40k
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "cellxgene_brain_40k.h5ad", n_cells: 39245, n_genes: 33694}
+          - {file: "cellxgene_brain_40k.h5ad"}
       - id: squidpy_visium_hne
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_visium_hne.h5ad", n_cells: 2688, n_genes: 18078}
+          - {file: "squidpy_visium_hne.h5ad"}
       - id: squidpy_mibitof
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_mibitof.h5ad", n_cells: 3309, n_genes: 36}
+          - {file: "squidpy_mibitof.h5ad"}
       - id: squidpy_slideseqv2
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_slideseqv2.h5ad", n_cells: 41786, n_genes: 4000}
+          - {file: "squidpy_slideseqv2.h5ad"}
       - id: squidpy_seqfish
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_seqfish.h5ad", n_cells: 19416, n_genes: 351}
+          - {file: "squidpy_seqfish.h5ad"}
       - id: squidpy_merfish
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_merfish.h5ad", n_cells: 73655, n_genes: 161}
+          - {file: "squidpy_merfish.h5ad"}
       - id: squidpy_imc
         software_environment: py
         repository: *local_data
         parameters:
-          - {file: "squidpy_imc.h5ad", n_cells: 4668, n_genes: 34}
+          - {file: "squidpy_imc.h5ad"}
 
   # Conversion, measured: GNU time (the paper's ru_maxrss) around denet, plus
   # obkit phase anchors (load/read/convert/write) in every R step. Commands are
@@ -405,16 +399,19 @@ stages:
           - {tool: scx, runs: 3, timeout: 600}
 
   # Output check, as crosscell's validate_output.py: open the file with the
-  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes.
+  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes,
+  # compared with the input read the same way. Not with the test matrix's
+  # numbers: 4 of its 13 h5ad cases list wrong dims (e.g. scanpy_pbmc3k_processed
+  # 2700 cells; the file has 2638).
   - id: CHECK_H5AD
-    inputs: [out_h5ad, rds_expected]
+    inputs: [out_h5ad, rds]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:
       - {id: dims_h5ad, software_environment: readers, repository: *local_validate}
 
   - id: CHECK_SEURAT
-    inputs: [out_seurat, h5ad_expected]
+    inputs: [out_seurat, h5ad]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:
