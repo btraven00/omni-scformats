@@ -52,4 +52,6 @@ Not ported: the paper's round-trip, robustness and scalability notebooks.
 - Use `scripts/run.sh`, not `ob run`: ob doesn't copy `envs/tools.post-deploy.sh` (which
   installs convert2anndata and easySCF from GitHub), and running ob through `uv run` leaks its
   venv's Python into the tools.
+- zellkonverter's basilisk compiles Python 3.14 from source unless you give it one:
+  `export BASILISK_CUSTOM_PYTHON_3_14_0=<conda python=3.14.0>/bin/python`.
 - Modules run from the committed tree, so commit before running.

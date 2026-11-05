@@ -74,7 +74,10 @@ if (grepl("\\.h5seurat$", f)) {
   }
 } else {
   suppressPackageStartupMessages(library(SeuratObject))
-  o <- suppressMessages(suppressWarnings(UpdateSeuratObject(readRDS(f))))
+  o <- readRDS(f)
+  # Update old objects; an object Update rejects (e.g. a malformed DimReduc) is
+  # still read as is: the slots compared here don't depend on it.
+  o <- tryCatch(suppressMessages(suppressWarnings(UpdateSeuratObject(o))), error = function(e) o)
   writeLines(Cells(o), file.path(out, "obs_names.txt"))
   writeLines(rownames(o), file.path(out, "var_names.txt"))
   columns(file.path(out, "obs"), o[[]])
