@@ -9,7 +9,7 @@ n_cells x n_genes check. Plus scx arms.
 
 ```
 RDS (42) --> TO_H5AD   (crosscell zellkonverter anndataR convert2anndata easySCF scx) --> CHECK_H5AD   --+
-H5AD (13) -> TO_SEURAT (crosscell zellkonverter anndataR scx_picklerick scx_bpcells)    --> CHECK_SEURAT -+-> SUMMARY (gather)
+H5AD (13) -> TO_SEURAT (crosscell zellkonverter anndataR scx)                            --> CHECK_SEURAT -+-> SUMMARY (gather)
 ```
 
 `benchmark.yaml` is generated: `python3 scripts/gen_plan.py > benchmark.yaml` from
@@ -39,17 +39,20 @@ Results: `out/SUMMARY.tables.*/results.tsv` (one row per case x tool, phases as 
 - **Phases.** Every R step is wrapped in obkit anchors (`load/read/convert/write`), joined to
   a denet trace (50 ms, children included). Total wall and ru_maxrss are the paper's numbers;
   phases let time-to-object be read without `saveRDS`, which is most of an h5ad -> rds run.
-- **scx arms.** scx does not write `.rds` (scx `docs/rds-write.md`). Its h5ad -> Seurat arms
-  build the object in R and `saveRDS` there: `scx_picklerick` (`read_h5ad(as = "Seurat")`),
-  `scx_bpcells` (`scx convert -> .bpcells`, `BPCells::open_matrix_dir`, `CreateSeuratObject`;
-  X + dimnames only, no meta.data). `scx` itself does rds -> h5ad.
-- **Validation** uses R's `readRDS` only; the original tried `crosscell inspect` first.
+- **scx arm**, the binary alone, both directions. h5ad -> Seurat writes scx's default
+  `.h5seurat` (BPCells-packed counts + meta.data), a file R reads, not an `.rds`: `.rds` is not
+  an interchange format (scx `docs/rds-write.md`), and opening the file is the consumer's job,
+  not the converter's. The original tools keep writing `.rds`. TO_SEURAT's declared
+  `<tool>.seurat` is a symlink to what the tool wrote.
+- **Validation** uses each format's own reader in R/Python (`anndata`, `readRDS` +
+  SeuratObject, `BPCells::open_matrix_hdf5` for `.h5seurat`); the original tried `crosscell
+  inspect` first for RDS.
 - **Versions.** Current releases, not the paper's: conda envs, unpinned, instead of its Docker
   image (e.g. anndataR 1.2.x vs the paper's 1.0.0, Seurat 5.5 vs 5.4). The paper's pass rates
   are a baseline to compare against, not a target. convert2anndata and easySCFr are GitHub-only
   and install in `envs/tools.post-deploy.sh`, which ob does not carry into `out/.envs/`:
-  `scripts/run.sh` puts it there. scx arms get their own env (picklerick's Bioconductor
-  generation).
+  `scripts/run.sh` puts it there. Checks and the scx arm run in `envs/readers.yml`
+  (BPCells does not solve alongside the tools env).
 - **Ids.** api 0.8 ids are `[A-Za-z0-9_]`: `celegans.embryo` -> `celegans_embryo`,
   `thp1.eccite` -> `thp1_eccite`.
 

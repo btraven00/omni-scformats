@@ -1,0 +1,13 @@
+# Reference readers: what checks a converted file is the format's own reader
+# (anndata for h5ad; readRDS + SeuratObject for .rds; BPCells for scx's
+# BPCells-backed .h5seurat). Also runs the scx arm, which needs only python:
+# the scx CLI is side-loaded via $SCX_BIN. Separate from tools.yml because
+# r-bpcells does not solve alongside it.
+name: crosscell-repro-readers
+channels: [conda-forge, bioconda]
+dependencies:
+  - r-seuratobject
+  - r-bpcells
+  - bioconductor-rhdf5
+  - python=3.12
+  - anndata

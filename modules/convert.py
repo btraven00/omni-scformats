@@ -8,8 +8,12 @@ commands are its cmd_* with three changes, none to what a tool computes:
     most of an h5ad -> rds run; see scx docs/rds-write.md);
   - zellkonverter's reticulate fallback uses this env's python, not /opt/venv;
   - library() calls are a timed `load` phase rather than untimed noise.
-Two arms are new: scx (rds -> h5ad, CLI) and scx's two routes into Seurat
-(picklerick in-process; scx -> .bpcells + BPCells::open_matrix_dir).
+One arm is new: scx, the binary alone, both directions. h5ad -> Seurat
+writes scx's default .h5seurat (BPCells-packed counts + meta.data), a file R
+reads with BPCells; no R step, no .rds (scx docs/rds-write.md).
+
+The TO_SEURAT output is a symlink to what the tool wrote (<tool>.rds or
+<tool>.h5seurat), so every tool keeps its natural format and its command.
 
 Measurement: GNU time (exact ru_maxrss, the paper's number) around denet
 (50 ms samples, children included), as ../omni-scx/modules/measure.sh. Same
@@ -42,8 +46,11 @@ def cmd_crosscell(i, o, d):
 
 
 def cmd_scx(i, o, d):
-    # Same flags on every case, as every other tool. rds -> h5ad only.
-    return [os.environ.get("SCX_BIN", "scx"), "convert", i, o] if d == "rds_to_h5ad" else None
+    # Same flags on every case, as every other tool. Format follows the extension.
+    return [os.environ.get("SCX_BIN", "scx"), "convert", i, o]
+
+
+NATIVE = {"scx": ".h5seurat"}  # h5ad -> Seurat: what each tool writes; default .rds
 
 
 def cmd_zellkonverter(i, o, d):
@@ -141,37 +148,6 @@ phase("write", saveH5(obj, "{o}"))
 """)
 
 
-def cmd_scx_picklerick(i, o, d):
-    # scx's in-process route: SeuratObject's own constructor builds the object.
-    # read_h5ad(as = "Seurat") reads and converts in one call: phase `read`.
-    if d != "h5ad_to_rds":
-        return None
-    return R(f"""
-phase("load", {{ library(picklerick); library(SeuratObject) }})
-obj <- phase("read", picklerick::read_h5ad("{i}", as = "Seurat"))
-phase("write", saveRDS(obj, "{o}"))
-""")
-
-
-def cmd_scx_bpcells(i, o, d):
-    # scx -> BPCells dir (X + dimnames only: no meta.data), then an Assay5 on
-    # it. The .rds is a small object pointing at the dir, which stays next to it.
-    if d != "h5ad_to_rds":
-        return None
-    bp = o[: -len(".rds")] + ".bpcells"
-    scx = os.environ.get("SCX_BIN", "scx")
-    ev = ('ev(){ printf \'{"ts":"%s","event":"%s","phase":"%s","pid":%d}\\n\' '
-          '"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" "$1" "$2" $$ >> "$OBKIT_DIR/obkit-events.jsonl"; }')
-    rscript = PRE + f"""
-phase("load", {{ library(BPCells); library(SeuratObject) }})
-m <- phase("read", BPCells::open_matrix_dir("{bp}"))
-obj <- phase("convert", CreateSeuratObject(m))
-phase("write", saveRDS(obj, "{o}"))
-"""
-    return ["bash", "-c", f'{ev}; set -e; rm -rf "{bp}"; ev convert start; "{scx}" convert "{i}" "{bp}"; ev convert end; '
-            f'Rscript -e "$1"', "_", rscript]
-
-
 def ts(s):
     return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
 
@@ -248,6 +224,9 @@ def main():
     else:
         direction, inp, out_path = "h5ad_to_rds", one["h5ad"], out["out_seurat"]
     out_path = os.path.abspath(out_path)
+    declared = out_path
+    if direction == "h5ad_to_rds":
+        out_path = str(Path(out_path).with_suffix(NATIVE.get(tool, ".rds")))
     test_id = Path(inp).name.rsplit(".", 1)[0]
     rec = {"test_id": test_id, "tool": tool, "direction": direction}
 
@@ -277,6 +256,10 @@ def main():
     if rec["status"] != "success":
         Path(out_path).unlink(missing_ok=True)
         Path(out_path).touch()  # declared output must exist; empty == no output
+    if declared != out_path:
+        Path(declared).unlink(missing_ok=True)
+        Path(declared).symlink_to(Path(out_path).name)
+    rec["output"] = Path(out_path).name
     Path(out["perf"]).write_text(json.dumps(rec, indent=1) + "\n")
     print(f"{test_id} {tool} {direction}: {rec['status']}")
 

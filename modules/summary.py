@@ -23,7 +23,7 @@ for p in many.get("check", []):
     rows[(c["test_id"], c["tool"])]["check"] = c["status"]
 
 cols = ["test_id", "tool", "direction", "status", "check", "conversion_time_seconds",
-        "peak_memory_mb", "output_file_size_mb", "all_times", "all_mems", "phases", "error"]
+        "peak_memory_mb", "output_file_size_mb", "all_times", "all_mems", "phases", "output", "error"]
 with res.open("w", newline="") as fh:
     w = csv.DictWriter(fh, cols, delimiter="\t", extrasaction="ignore")
     w.writeheader()
@@ -31,7 +31,7 @@ with res.open("w", newline="") as fh:
         err = (rows[k].get("error") or "").strip().splitlines()
         w.writerow({**rows[k], "error": err[-1] if err else "", "phases": json.dumps(rows[k].get("phases", {}))})
 
-tools = ["crosscell", "zellkonverter", "anndataR", "convert2anndata", "easySCF", "scx", "scx_picklerick", "scx_bpcells"]
+tools = ["crosscell", "zellkonverter", "anndataR", "convert2anndata", "easySCF", "scx"]
 dirs = ["rds_to_h5ad", "h5ad_to_rds"]
 n, ok, val = Counter(), Counter(), Counter()
 for r in rows.values():

@@ -8,8 +8,8 @@ description: >-
   same 55 test cases (42 Seurat RDS, 13 H5AD; Zenodo 10.5281/zenodo.18610876).
   Per case: 3 runs under GNU time + denet with obkit phases, median wall and
   ru_maxrss, then the output is checked for n_cells x n_genes. A failed
-  conversion is a row, not a crash. Adds scx arms (rds -> h5ad; h5ad -> Seurat
-  via picklerick or .bpcells).
+  conversion is a row, not a crash. Adds an scx arm, the binary alone, both
+  directions (h5ad -> BPCells-backed .h5seurat, read by R; no .rds).
 benchmarker: "btraven <ben.uzh@proton.me>"
 version: "0.1.0"
 api_version: "0.8.0"
@@ -26,10 +26,10 @@ software_environments:
       crosscell (paper's prebuilt 0.1.0), scx and denet binaries are side-loaded
       via $CROSSCELL_BIN, $SCX_BIN, $DENET (see README).
     conda: envs/tools.yml
-  scx:
-    name: scx routes into Seurat
-    description: picklerick 0.5.0 + BPCells + SeuratObject
-    conda: envs/scx.yml
+  readers:
+    name: reference readers (checks) + the scx arm
+    description: anndata, SeuratObject, BPCells, rhdf5; scx CLI via $SCX_BIN
+    conda: envs/readers.yml
   py:
     name: python (staging, summary)
     conda: envs/py.yml
@@ -368,18 +368,19 @@ stages:
         parameters:
           - {tool: easySCF, runs: 3, timeout: 600}
       - id: scx
-        software_environment: scx
+        software_environment: readers
         repository: *local_convert
         parameters:
           - {tool: scx, runs: 3, timeout: 600}
 
-  # Ends in a Seurat object, saved by R. scx does not write .rds (docs/
-  # rds-write.md): its arms build the object in R (picklerick, or BPCells on
-  # scx's .bpcells) and saveRDS there. Phases separate object from write.
+  # Ends in a file R reads as Seurat data. The original tools write .rds; scx
+  # writes .h5seurat (BPCells-packed counts + meta.data), since .rds is not an
+  # interchange format (scx docs/rds-write.md). The declared .seurat is a
+  # symlink to the file the tool wrote; CHECK_SEURAT reads that with R.
   - id: TO_SEURAT
     inputs: [h5ad]
     outputs:
-      - {id: out_seurat, path: "{module.id}.rds"}
+      - {id: out_seurat, path: "{module.id}.seurat"}
       - {id: perf, path: "{module.id}.perf.json"}
     modules:
       - id: crosscell
@@ -397,32 +398,27 @@ stages:
         repository: *local_convert
         parameters:
           - {tool: anndataR, runs: 3, timeout: 600}
-      - id: scx_picklerick
-        software_environment: scx
+      - id: scx
+        software_environment: readers
         repository: *local_convert
         parameters:
-          - {tool: scx_picklerick, runs: 3, timeout: 600}
-      - id: scx_bpcells
-        software_environment: scx
-        repository: *local_convert
-        parameters:
-          - {tool: scx_bpcells, runs: 3, timeout: 600}
+          - {tool: scx, runs: 3, timeout: 600}
 
   # Output check, as crosscell's validate_output.py: open the file with the
-  # format's reference reader (anndata / readRDS) and compare n_cells x n_genes.
+  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes.
   - id: CHECK_H5AD
     inputs: [out_h5ad, rds_expected]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:
-      - {id: dims_h5ad, software_environment: tools, repository: *local_validate}
+      - {id: dims_h5ad, software_environment: readers, repository: *local_validate}
 
   - id: CHECK_SEURAT
     inputs: [out_seurat, h5ad_expected]
     outputs:
       - {id: check, path: "{module.id}.check.json"}
     modules:
-      - {id: dims_seurat, software_environment: tools, repository: *local_validate}
+      - {id: dims_seurat, software_environment: readers, repository: *local_validate}
 
   # Global fan-in: one table, one row per (test case, tool).
   - id: SUMMARY
