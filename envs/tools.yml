@@ -21,6 +21,7 @@ dependencies:
   - python=3.12
   - anndata=0.12.9      # the paper's; convert2anndata passes AnnData(dtype=), removed in 0.13
   - h5py
+  - scanpy             # easySCFpy.loadH5 (the paper's easySCF reader) imports it
   - scipy
   - pandas
   - pip
