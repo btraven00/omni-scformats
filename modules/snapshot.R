@@ -75,6 +75,12 @@ if (grepl("\\.h5seurat$", f)) {
           codes <- as.integer(h5read(f, paste0(q, "/codes")))
           factor(ifelse(codes < 0, NA, lv[codes + 1L]), levels = lv)
         }
+      } else if (has(paste0(g, "/__categories/", c))) {
+        # anndata 0.7 categoricals, as copied from old h5ad inputs: 0-based codes
+        # plus levels in <df>/__categories/<col>
+        lv <- as.character(h5read(f, paste0(g, "/__categories/", c)))
+        codes <- as.integer(h5read(f, q))
+        factor(ifelse(codes < 0, NA, lv[codes + 1L]), levels = lv)
       } else {
         x <- h5read(f, q)
         # rhdf5 returns HDF5 booleans (h5py's FALSE/TRUE enum) as text
@@ -95,16 +101,30 @@ if (grepl("\\.h5seurat$", f)) {
     groups <- c(l$name[l$group == base & l$otype == "H5I_GROUP"])
     if ("layers" %in% groups) groups <- c(setdiff(groups, "layers"),
                                           paste0("layers/", l$name[l$group == paste0(base, "/layers")]))
-    for (lay in setdiff(groups, "meta.features")) {
+    dense <- l$name[l$group == paste0(base, "/layers") & l$otype == "H5I_DATASET"]
+    layers <- c(groups, if (length(dense)) paste0("layers/", dense))
+    for (lay in setdiff(unique(layers), "meta.features")) {
       g <- paste0(base, "/", lay)
       kids <- l$name[l$group == g]
-      m <- if (all(c("data", "indices", "indptr") %in% kids)) {
-        d <- as.integer(attrs(g)[["dims"]])
-        new("dgCMatrix", i = as.integer(h5read(f, paste0(g, "/indices"))),
-            p = as.integer(h5read(f, paste0(g, "/indptr"))),
-            x = as.double(h5read(f, paste0(g, "/data"))), Dim = d)
-      } else as(open_matrix_hdf5(f, sub("^/", "", g)), "dgCMatrix")
-      dimnames(m) <- list(feats, cells)
+      # A layer that can't be read as genes x cells with these names is skipped
+      # with a message: the comparison then reports that matrix as not found,
+      # and every other property is still checked.
+      m <- tryCatch({
+        m <- if (l$otype[path == g] == "H5I_DATASET") {
+          x <- h5read(f, g)                      # dense
+          if (!identical(dim(x), c(length(feats), length(cells)))) x <- t(x)
+          as(Matrix(x, sparse = TRUE), "dgCMatrix")
+        } else if (all(c("data", "indices", "indptr") %in% kids)) {
+          new("dgCMatrix", i = as.integer(h5read(f, paste0(g, "/indices"))),
+              p = as.integer(h5read(f, paste0(g, "/indptr"))),
+              x = as.double(h5read(f, paste0(g, "/data"))), Dim = as.integer(attrs(g)[["dims"]]))
+        } else as(open_matrix_hdf5(f, sub("^/", "", g)), "dgCMatrix")
+        if (!identical(dim(m), c(length(feats), length(cells))))
+          stop("dims ", paste(dim(m), collapse = " x "), ", but ", length(feats), " features x ", length(cells), " cells")
+        dimnames(m) <- list(feats, cells)
+        m
+      }, error = function(e) { message("skipped layer ", g, ": ", conditionMessage(e)); NULL })
+      if (is.null(m)) next
       matrix_(k, paste0(a, "/", sub("^layers/", "", lay)), m, "h5seurat"); k <- k + 1L
     }
   }
