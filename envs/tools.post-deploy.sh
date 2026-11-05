@@ -6,7 +6,7 @@ Rscript --vanilla -e '
   options(repos = c(CRAN = "https://cloud.r-project.org"), Ncpus = 8)
   remotes::install_github("settylab/convert2anndata@550bfb07fc", upgrade = "never")
   remotes::install_github("xleizi/easySCF/r@0a5a667720", upgrade = "never")
-  # Build zellkonverter's basilisk env now, not inside the first timed run. basilisk
+  # Build the zellkonverter basilisk env now, not inside the first timed run. basilisk
   # compiles Python from source unless BASILISK_CUSTOM_PYTHON_3_14_0 names a python.
   tryCatch(basilisk::obtainEnvironmentPath(zellkonverter::zellkonverterAnnDataEnv()),
            error = function(e) message("basilisk env not built: ", conditionMessage(e)))
