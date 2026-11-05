@@ -24,7 +24,8 @@ the plan) and three side-loaded binaries.
 scripts/fetch.sh                                 # hapiq: Zenodo 10.5281/zenodo.18610876, 6.4 GB
 export CROSSCELL_DATA=$PWD/data                  # where fetch.sh unpacked; modules run from .modules/, so set it
 export CROSSCELL_BIN=$PWD/data/crosscell         # cp ../crosscell/benchmark/crosscell; chmod +x  (the paper's 0.1.0 binary)
-export SCX_BIN=~/phd/scx/target/release/scx      # cargo build --release -p scx-cli
+micromamba create -y -p data/scx-env -c conda-forge -c https://prefix.dev/edge scx=0.5.0.post147
+export SCX_BIN=$PWD/data/scx-env/bin/scx         # pinned scx (7247a06); its HDF5 pin clashes with BPCells', so not in envs/
 export DENET=$(command -v denet)
 scripts/run.sh --cores 16                                      # full run: omni / hainan, not the laptop
 scripts/run.sh --cores 8 --filter slice.obfilter.yaml          # laptop slice: 3 v5 RDS + 2 small H5AD
