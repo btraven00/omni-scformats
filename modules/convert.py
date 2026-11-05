@@ -152,23 +152,12 @@ def ts(s):
     return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
 
 
-def phases(obkit_dir, denet_file):
-    """{event: [seconds, peak_rss_mb]} from obkit anchors + denet samples.
-    Pairs by (pid, event) in file order; an unmatched start (a step that
-    raised) is dropped. Peak is denet-sampled within the phase window."""
+def obkit_windows(obkit_dir):
+    """[(event, t0, t1)] from obkit anchors (R steps). Pairs by (pid, event) in
+    file order; an unmatched start (a step that raised) is dropped."""
     f = Path(obkit_dir) / "obkit-events.jsonl"
-    if not f.exists():
-        return {}
-    samples = []
-    for line in Path(denet_file).read_text().splitlines() if Path(denet_file).exists() else []:
-        try:
-            a = json.loads(line).get("aggregated")
-        except json.JSONDecodeError:
-            continue
-        if a:
-            samples.append((a["ts_ms"] / 1000, a["mem_rss_kb"] / 1024))
-    open_, out = {}, {}
-    for line in f.read_text().splitlines():
+    open_, out = {}, []
+    for line in f.read_text().splitlines() if f.exists() else []:
         try:
             e = json.loads(line)
         except json.JSONDecodeError:
@@ -177,10 +166,55 @@ def phases(obkit_dir, denet_file):
         if e["phase"] == "start":
             open_[k] = ts(e["ts"])
         elif k in open_:
-            t0, t1 = open_.pop(k), ts(e["ts"])
-            peak = max((m for t, m in samples if t0 <= t <= t1), default=0.0)
-            s, p = out.get(e["event"], [0.0, 0.0])
-            out[e["event"]] = [round(s + t1 - t0, 3), round(max(p, peak), 1)]
+            out.append((e["event"], open_.pop(k), ts(e["ts"])))
+    return out
+
+
+def scx_windows(log, start):
+    """scx's own INFO timestamps: start-up, metadata (+obsm/varm) read, the
+    matrix stream (read, convert and write in one pass), finalize (incl. hash)."""
+    at = {}
+    for line in log.splitlines():
+        m = re.match(r"(?:\x1b\[[0-9;]*m)*(\d{4}-\d\d-\d\dT[\d:.]+Z)", line)
+        for key, marker in (("start", "starting conversion"), ("meta", "metadata loaded"),
+                            ("aux", "read obsm, varm"), ("matrix", "matrix streamed"), ("end", "conversion complete")):
+            if m and marker in line:
+                at[key] = ts(m.group(1))
+    if not {"start", "matrix", "end"} <= at.keys():
+        return []
+    read_end = at.get("aux", at.get("meta", at["start"]))
+    return [("load", start, at["start"]), ("read", at["start"], read_end),
+            ("stream", read_end, at["matrix"]), ("write", at["matrix"], at["end"])]
+
+
+def crosscell_windows(log, start):
+    """crosscell's 4 steps with their printed durations, laid end to end from
+    process start (its long steps print whole seconds, e.g. "[6s]")."""
+    name = {"1": "read", "2": "convert", "3": "convert", "4": "write"}
+    out, t = [], start
+    for step, dur in re.findall(r"\[(\d)/4\] \S+ .*?\[([^\]]+)\]\s*$", log, re.M):
+        secs = sum(float(v) * {"ms": 1e-3, "s": 1, "m": 60, "h": 3600}[u] for v, u in re.findall(r"([\d.]+)(ms|s|m|h)\b", dur))
+        out.append((name[step], t, t + secs))
+        t += secs
+    return out
+
+
+def phases(windows, denet_file):
+    """{event: [seconds, peak_rss_mb]}: summed per event, peak = denet samples
+    inside the event's windows."""
+    samples = []
+    for line in Path(denet_file).read_text().splitlines() if Path(denet_file).exists() else []:
+        try:
+            a = json.loads(line).get("aggregated")
+        except json.JSONDecodeError:
+            continue
+        if a:
+            samples.append((a["ts_ms"] / 1000, a["mem_rss_kb"] / 1024))
+    out = {}
+    for event, t0, t1 in windows:
+        peak = max((m for t, m in samples if t0 <= t <= t1), default=0.0)
+        s, p = out.get(event, [0.0, 0.0])
+        out[event] = [round(s + t1 - t0, 3), round(max(p, peak), 1)]
     return out
 
 
@@ -214,7 +248,12 @@ def measure(cmd, timeout, tag, out_dir):
     m = re.search(r"Maximum resident set size \(kbytes\): (\d+)", time_file.read_text() if time_file.exists() else "")
     peak = int(m.group(1)) / 1024.0 if m else 0.0
     err = "" if rc == 0 else (log.read_text(errors="replace") if log.exists() else r.stderr).strip()
-    return rc == 0, elapsed, peak, err, phases(obkit_dir, denet_file)
+    windows = obkit_windows(obkit_dir)
+    if not windows and log.exists():  # the binaries: phases from their own log
+        text = log.read_text(errors="replace")
+        windows = scx_windows(text, start) if tag.startswith("scx.") else \
+            crosscell_windows(text, start) if tag.startswith("crosscell.") else []
+    return rc == 0, elapsed, peak, err, phases(windows, denet_file)
 
 
 def main():

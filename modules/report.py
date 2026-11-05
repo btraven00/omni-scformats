@@ -26,9 +26,10 @@ DIRS = {"rds_to_h5ad": "Seurat .rds → h5ad", "h5ad_to_rds": "h5ad → Seurat-r
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 DIR_COLOR = {"rds_to_h5ad": "#2a78d6", "h5ad_to_rds": "#eb6834"}
 PHASES = [  # (display name, convert.py phase names, colour)
-    ("R + packages load", ["load"], "#2a78d6"),
+    ("start-up (R + packages / binary)", ["load"], "#2a78d6"),
     ("read", ["read", "read_fallback"], "#eb6834"),
     ("convert", ["convert", "convert_fallback"], "#eda100"),
+    ("matrix stream (scx: read, convert, write in one pass)", ["stream"], "#e87ba4"),
     ("write (saveRDS / h5ad)", ["write"], "#008300"),
 ]
 PHASE_OF = {raw: name for name, raws, _ in PHASES for raw in raws}
@@ -146,8 +147,10 @@ def tables(agg):
                  f"{fmt_mb(st.median(a['rss']))}") if a["wall"] else "| |"
             md.append(f"| {t} | {a['ok']}/{a['n']} | {a['faithful']}/{a['n']} | {w} |")
         md.append("")
-    md += ["## R arms by phase", "",
-           "Median over converted cases of each phase's seconds, and of its denet-sampled peak.", "",
+    md += ["## By phase", "",
+           "Median over converted cases of each phase's seconds, and of its denet-sampled peak.",
+           "R tools: obkit anchors in each step. scx: its own log timestamps. crosscell: its",
+           "printed step durations laid end to end (long steps are rounded to whole seconds).", "",
            "| tool | direction | " + " | ".join(n for n, _, _ in PHASES) + " |",
            "|---|---|" + "--:|" * len(PHASES)]
     for t in TOOLS:
@@ -259,10 +262,10 @@ def fig_phases(agg, path):
     ax2.set_title("Peak RSS within each phase (GB)", loc="left", fontsize=11, color=INK, pad=8)
     ax2.set_xlim(left=0)
     handles = [plt.Rectangle((0, 0), 1, 1, color=c) for n, _, c in PHASES if n in used]
-    fig.suptitle("R arms, median over converted cases (bar ends: sum of the phase medians)",
+    fig.suptitle("By phase, median over converted cases (bar ends: sum of the phase medians)",
                  x=0.01, ha="left", fontsize=12, color=INK)
     fig.legend(handles, [n for n, _, _ in PHASES if n in used], loc="upper left",
-               bbox_to_anchor=(0.01, 0.95), ncol=len(handles), frameon=False, fontsize=9)
+               bbox_to_anchor=(0.01, 0.95), ncol=min(3, len(handles)), frameon=False, fontsize=9)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     save(fig, path)
 
