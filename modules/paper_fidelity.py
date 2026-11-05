@@ -146,6 +146,7 @@ for tool, p in sorted(files.items()):
         res = {**metrics(cc, p, tool), "test_type": "cross_tool"}
     rows.append({"test_id": case, "tool": tool, **res})
 
-dst = out.get("paper_fidelity") or str(Path(one["output_dir"]) / f"{one.get('name', case)}.paper_fidelity.json")
+# Gather rules pass no --output: rebuild the plan's "{RDS}.paper_fidelity.json".
+dst = out.get("paper_fidelity") or str(Path(one["output_dir"]) / f"{case}.paper_fidelity.json")
 Path(dst).write_text(json.dumps(rows, indent=1) + "\n")
 print(case, [(r["tool"], r["status"]) for r in rows])
