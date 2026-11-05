@@ -6,8 +6,12 @@
 # Conversion outputs don't depend on timing, so the checks stay valid.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-scripts/run.sh --filter seq.obfilter.yaml --out-dir out-seq --cores 2 -- \
-  --conda-prefix "$PWD/out/.snakemake/conda" --rerun-triggers mtime
+# Data + one conversion stage per pass (--until keeps a stage and its ancestors;
+# an obfilter would keep the gather stages and fail on their pruned inputs).
+for stage in TO_H5AD TO_SEURAT; do
+  scripts/run.sh --until "$stage" --out-dir out-seq --cores 2 -- \
+    --conda-prefix "$PWD/out/.snakemake/conda" --rerun-triggers mtime
+done
 for d in out-seq/*/TO_*; do
   dst="out/${d#out-seq/}"
   [[ -d "$dst" ]] || { echo "no counterpart for $d in out/" >&2; exit 1; }
