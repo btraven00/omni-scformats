@@ -41,13 +41,14 @@ The slice only needs `scripts/fetch.sh h5ad_small seurat_v5`. Results end up in
   an h5ad → rds run is just `saveRDS`. Memory is GNU time's peak plus a denet trace.
 - **scx writes `.h5seurat`, not `.rds`.** `.rds` isn't an interchange format; scx writes a file
   R can read (BPCells-backed counts plus metadata) and stops there.
-- **Fidelity, not just shape.** The paper only checked n_cells × n_genes, against a test matrix
-  that's wrong for 4 of its 13 h5ad cases. Here input and output are read with each format's
-  own reader (anndata, readRDS, BPCells) and compared on names, every obs/var column (type,
-  values, missing values) and every matrix. `scx diff` runs alongside as a second opinion.
-  (Their `results/validation.json`, where that shape check should land, is an empty list; and
-  the 3 CELLxGENE rows of the test matrix list 33,694 genes each, the 10x GRCh38 count, not
-  the files' 17,222 / 32,330 / 58,232.)
+- **Fidelity, not just shape.** The paper only checked n_cells × n_genes, and that check left
+  no record: its `results/validation.json` is `{}` (the validator found no tool results on the
+  run that wrote it). Here input and output are read with each format's own reader (anndata,
+  readRDS, BPCells) and compared on names, every obs/var column (type, values, missing values)
+  and every matrix. `scx diff` runs alongside as a second opinion. The expected dims come from
+  the input file, not a table: the paper's later `config/benchmark_testcases.json` lists wrong
+  dims for 4 of 13 h5ad cases (all 3 CELLxGENE rows say 33,694 genes, the 10x GRCh38 count);
+  the matrix it actually ran from (`data/test_matrix.json`, deleted after `a910b12`) is right.
 - **IDs** lose their dots (`celegans.embryo` → `celegans_embryo`); api 0.8 requires it.
 
 Not ported: the paper's round-trip, robustness and scalability notebooks.
