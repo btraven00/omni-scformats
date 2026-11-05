@@ -1,0 +1,5 @@
+entrypoints:
+  data: modules/data.py
+  convert: modules/convert.py
+  validate: modules/validate.py
+  summary: modules/summary.py

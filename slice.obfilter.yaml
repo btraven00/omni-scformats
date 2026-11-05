@@ -1,0 +1,11 @@
+# Laptop slice: 3 Seurat v5 cases + 2 small H5AD, every tool, both checks.
+# Needs only `scripts/fetch.sh h5ad_small seurat_v5`. The full run is for omni/hainan.
+#   ob run benchmark.yaml --filter slice.obfilter.yaml
+picks:
+  RDS: {v5_pbmc3k_raw: all, v5_pbmc3k_processed: all, v5_stxKidney_raw: all}
+  H5AD: {scanpy_pbmc3k: all, scanpy_pbmc3k_processed: all}
+  TO_H5AD: {'*': all}
+  TO_SEURAT: {'*': all}
+  CHECK_H5AD: {'*': all}
+  CHECK_SEURAT: {'*': all}
+  SUMMARY: {'*': all}

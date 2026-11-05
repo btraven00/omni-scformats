@@ -1,0 +1,36 @@
+# Every converter in one env, as crosscell's Dockerfile.benchmark does (one
+# image, 5 tools). Versions pinned to its results/tool_versions.json where a
+# conda build exists for R 4.5. Seurat has no R 4.5 build on conda-forge, so it
+# and the two GitHub-only tools come from tools.post-deploy.sh.
+name: crosscell-repro-tools
+channels: [conda-forge, bioconda, "https://prefix.dev/almost-conductor"]
+dependencies:
+  - r-base=4.5
+  - bioconductor-zellkonverter=1.20.1
+  - bioconductor-anndatar=1.0.0
+  - bioconductor-singlecellexperiment
+  - bioconductor-summarizedexperiment
+  - bioconductor-hdf5array
+  - bioconductor-rhdf5
+  - r-matrix
+  - r-reticulate
+  - r-anndata            # convert2anndata calls anndata::write_h5ad
+  - r-hdf5r
+  - r-remotes
+  - r-jsonlite
+  - r-obkit=0.0.4        # phase anchors
+  # to build Seurat + deps from source in post-deploy
+  - compilers
+  - make
+  - pkg-config
+  - glpk
+  - libblas
+  - liblapack
+  - python=3.12
+  - anndata=0.12.9
+  - h5py
+  - scipy
+  - pandas
+  - pip
+  - pip:
+      - easySCFpy==0.2.5

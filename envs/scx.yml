@@ -1,0 +1,11 @@
+# scx's routes into Seurat. Own env: picklerick needs a newer Bioconductor
+# generation (SingleCellExperiment 1.34) than zellkonverter 1.20.1 allows.
+# The scx CLI itself is side-loaded via $SCX_BIN.
+name: crosscell-repro-scx
+channels: [conda-forge, bioconda, "https://prefix.dev/almost-conductor", "https://prefix.dev/edge"]
+dependencies:
+  - r-picklerick=0.5.0.post147   # scx 0.5.0 generation (scx f006abf)
+  - r-seuratobject
+  - r-bpcells
+  - r-obkit=0.0.4
+  - python=3.12                  # runs modules/convert.py
