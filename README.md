@@ -34,7 +34,9 @@ The slice only needs `scripts/fetch.sh h5ad_small seurat_v5`. Results end up in
 ## How it differs from the paper
 
 - **Current tool versions**, from conda, not the paper's Docker image. Their numbers are a
-  baseline, not a target (they used anndataR 1.0, for example).
+  baseline, not a target (they used anndataR 1.0, for example). One pin: anndata 0.12.9 in the
+  tools env, because convert2anndata calls `AnnData(dtype=...)`, which 0.13 removed. The
+  checks read with current anndata.
 - **Phases.** R steps are split into load / read / convert / write, so you can see how much of
   an h5ad → rds run is just `saveRDS`. Memory is GNU time's peak plus a denet trace.
 - **scx writes `.h5seurat`, not `.rds`.** `.rds` isn't an interchange format; scx writes a file

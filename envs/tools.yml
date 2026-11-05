@@ -19,7 +19,7 @@ dependencies:
   - r-remotes
   - r-obkit=0.0.4        # phase anchors
   - python=3.12
-  - anndata
+  - anndata=0.12.9      # the paper's; convert2anndata passes AnnData(dtype=), removed in 0.13
   - h5py
   - scipy
   - pandas
