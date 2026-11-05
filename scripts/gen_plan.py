@@ -159,6 +159,8 @@ TAIL_TMPL = """
       - {id: tools_svg, path: "tools.svg"}
       - {id: phases_png, path: "phases.png"}
       - {id: phases_svg, path: "phases.svg"}
+      - {id: fig3_png, path: "fig3.png"}
+      - {id: fig3_svg, path: "fig3.svg"}
     modules:
       - id: tables
         software_environment: py

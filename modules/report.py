@@ -252,8 +252,9 @@ def fig_phases(agg, path):
                 ax.text(left + w / 2, y, f"{w:.1f}", ha="center", va="center", fontsize=8, color="#ffffff")
             if mb:
                 dy = (k - (len(PHASES) - 1) / 2) * 0.14
-                ax2.scatter(st.median(mb) / 1024, y + dy, s=36, color=color, edgecolors=SURFACE,
-                            linewidths=2, zorder=3)
+                v = st.median(mb) / 1024
+                ax2.hlines(y + dy, 0, v, color=color, linewidth=1.4, alpha=0.7, zorder=2)  # stem to the value
+                ax2.scatter(v, y + dy, s=36, color=color, edgecolors=SURFACE, linewidths=2, zorder=3)
             left += w
             used.append(pname)
         ax.text(left * 1.02 + 0.1, y, fmt_s(left), va="center", fontsize=8, color=INK2)
@@ -273,9 +274,150 @@ def fig_phases(agg, path):
     save(fig, path)
 
 
+# ---- the paper's fig3 (notebooks/fig3_performance.ipynb), from our runs, plus scx ----
+TOOL_COLOR = {"scx": "#2a78d6", "crosscell": "#eb6834", "anndataR": "#1baf7a",
+              "zellkonverter": "#eda100", "convert2anndata": "#e87ba4", "easySCF": "#008300"}
+TOOL_MARKER = {"scx": "o", "crosscell": "o", "zellkonverter": "s", "anndataR": "^",
+               "convert2anndata": "D", "easySCF": "v"}
+# nnz and v4/v5 x raw/processed per case, from the paper's config. Its nnz match
+# scx's own total_nnz on every case scx converted (43); cellxgene_pbmc_15k has
+# none in the config, so it takes scx's count.
+NNZ_MISSING = {"cellxgene_pbmc_15k": 14341801}
+
+
+def case_meta():
+    import json
+    cfg = Path(__file__).resolve().parent.parent / "config" / "benchmark_testcases.json"
+    meta = {}
+    for cases in json.loads(cfg.read_text())["test_cases"].values():
+        for c in cases:
+            tid = c["test_id"].replace(".", "_")
+            meta[tid] = {"nnz": c.get("nnz") or NNZ_MISSING.get(tid),
+                         "cat": f"{c['seurat_version']} {c['type']}" if c.get("seurat_version") else ""}
+    return meta
+
+
+def fig_paper3(rows, path):
+    from scipy import stats
+    meta = case_meta()
+    ok = defaultdict(dict)  # (direction, tool) -> {case: perf}
+    for (case, tool), r in rows.items():
+        if r["status"] == "success" and meta.get(case, {}).get("nnz"):
+            ok[(r["direction"], tool)][case] = r
+    fig, axes = plt.subplots(2, 2, figsize=(14, 11.5))
+    fig.patch.set_facecolor(SURFACE)
+    for ax in axes.flat:
+        style(ax)
+        ax.grid(axis="y", color=GRID, linewidth=0.8)
+    ax_a, ax_b, ax_c, ax_d = axes.flat
+    r2h = "rds_to_h5ad"
+
+    def fit(ax, xs, ys, color, label=None):
+        if len(xs) >= 3:
+            f = stats.linregress(xs, ys)
+            x = [min(xs), max(xs)]
+            ax.plot(x, [f.slope * v + f.intercept for v in x], "--", color=color, linewidth=1.3, alpha=0.8,
+                    label=label and f"{label} fit (R²={f.rvalue ** 2:.3f})")
+
+    # A: time vs nnz. crosscell as published (colour = Seurat version x type), plus scx.
+    cat_color = {"V4 raw": "#025e8d", "V4 processed": "#f58220", "V5 raw": "#be1818", "V5 processed": "#c75301"}
+    cc = ok[(r2h, "crosscell")]
+    for case, r in cc.items():
+        ax_a.scatter(meta[case]["nnz"] / 1e6, r["conversion_time_seconds"], s=46,
+                     color=cat_color.get(meta[case]["cat"], INK2), edgecolors=SURFACE, linewidths=0.8, zorder=3)
+    fit(ax_a, [meta[c]["nnz"] / 1e6 for c in cc], [r["conversion_time_seconds"] for r in cc.values()], INK, "crosscell")
+    sx = ok[(r2h, "scx")]
+    ax_a.scatter([meta[c]["nnz"] / 1e6 for c in sx], [r["conversion_time_seconds"] for r in sx.values()], s=46,
+                 facecolors="none", edgecolors=TOOL_COLOR["scx"], linewidths=1.4, zorder=3, label="scx")
+    fit(ax_a, [meta[c]["nnz"] / 1e6 for c in sx], [r["conversion_time_seconds"] for r in sx.values()],
+        TOOL_COLOR["scx"], "scx")
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in cat_color.values()]
+    h2, l2 = ax_a.get_legend_handles_labels()
+    ax_a.legend(handles + h2, [f"crosscell {k}" for k in cat_color] + l2, loc="upper left", frameon=False, fontsize=8)
+    ax_a.set_xlabel("Non-zero elements (millions)", color=INK2)
+    ax_a.set_ylabel("Conversion time (s)", color=INK2)
+    ax_a.set_title("A   Time vs nnz (rds → h5ad)", loc="left", fontsize=11, color=INK)
+
+    # B: time ratio tool / crosscell, per shared case.
+    tools_b = ["scx", "zellkonverter", "anndataR", "convert2anndata", "easySCF"]
+    data, labels = [], []
+    for t in tools_b:
+        tr = ok[(r2h, t)]
+        ratios = [tr[c]["conversion_time_seconds"] / cc[c]["conversion_time_seconds"] for c in tr if c in cc]
+        if ratios:
+            data.append(ratios)
+            labels.append(t)
+    bp = ax_b.boxplot(data, widths=0.5, patch_artist=True, showfliers=False)
+    for i, (patch, t) in enumerate(zip(bp["boxes"], labels)):
+        patch.set_facecolor(TOOL_COLOR[t]); patch.set_alpha(0.35); patch.set_edgecolor(INK2)
+        xs = [i + 1 + 0.08 * ((j * 7919) % 11 - 5) / 5 for j in range(len(data[i]))]  # fixed jitter
+        ax_b.scatter(xs, data[i], s=16, color=TOOL_COLOR[t], alpha=0.8, edgecolors=SURFACE, linewidths=0.4, zorder=3)
+        ax_b.text(i + 1, max(data[i]) * 1.08, f"{st.median(data[i]):.1f}×\n(n={len(data[i])})",
+                  ha="center", fontsize=8, color=INK)
+    for m in bp["medians"]:
+        m.set_color(INK)
+    ax_b.axhline(1, color=INK2, linestyle="--", linewidth=1, alpha=0.6)
+    ax_b.set_yscale("log")
+    ax_b.set_ylim(top=max(max(d) for d in data) * 3)  # room for the median labels
+    ax_b.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}×"))
+    ax_b.set_xticks(range(1, len(labels) + 1))
+    ax_b.set_xticklabels(labels, fontsize=9, color=INK)
+    ax_b.set_ylabel("Time ratio (tool / crosscell), log scale", color=INK2)
+    ax_b.set_title("B   Time ratio vs crosscell (rds → h5ad)", loc="left", fontsize=11, color=INK)
+
+    # C: peak memory vs nnz, every tool, linear fits, MB per million nnz.
+    eff = []
+    for t in ["scx", "crosscell", "zellkonverter", "anndataR", "convert2anndata", "easySCF"]:
+        tr = ok[(r2h, t)]
+        if not tr:
+            continue
+        xs = [meta[c]["nnz"] / 1e6 for c in tr]
+        ys = [r["peak_memory_mb"] for r in tr.values()]
+        ax_c.scatter(xs, ys, s=34, color=TOOL_COLOR[t], marker=TOOL_MARKER[t], alpha=0.75,
+                     edgecolors=SURFACE, linewidths=0.5, label=t, zorder=3)
+        fit(ax_c, xs, ys, TOOL_COLOR[t])
+        eff.append(f"{t:>15}: {st.median(y / x for x, y in zip(xs, ys)):.0f}")
+    ax_c.text(0.98, 0.02, "MB / M nnz (median)\n" + "\n".join(eff), transform=ax_c.transAxes, ha="right",
+              va="bottom", fontsize=8, family="monospace", color=INK2)
+    ax_c.legend(loc="upper left", frameon=False, fontsize=8)
+    ax_c.set_xlabel("Non-zero elements (millions)", color=INK2)
+    ax_c.set_ylabel("Peak memory (MB)", color=INK2)
+    ax_c.set_title("C   Peak memory vs nnz (rds → h5ad)", loc="left", fontsize=11, color=INK)
+
+    # D: h5ad -> Seurat, paired times against zellkonverter (log-log).
+    zk = ok[("h5ad_to_rds", "zellkonverter")]
+    pts = []
+    for t in ["crosscell", "scx"]:
+        tr = ok[("h5ad_to_rds", t)]
+        pr = [(tr[c]["conversion_time_seconds"], zk[c]["conversion_time_seconds"]) for c in tr if c in zk]
+        if not pr:
+            continue
+        pts += [v for p in pr for v in p]
+        faster = sum(a < b for a, b in pr)
+        ax_d.scatter([a for a, _ in pr], [b for _, b in pr], s=50, color=TOOL_COLOR[t], edgecolors=SURFACE,
+                     linewidths=1, zorder=3,
+                     label=f"{t}: faster in {faster}/{len(pr)}, median {st.median(b / a for a, b in pr):.1f}×")
+    if pts:
+        lo, hi = min(pts) * 0.5, max(pts) * 2
+        ax_d.plot([lo, hi], [lo, hi], "--", color=INK2, linewidth=1, alpha=0.6)
+        ax_d.set_xlim(lo, hi); ax_d.set_ylim(lo, hi)
+    ax_d.set_xscale("log"); ax_d.set_yscale("log")
+    ax_d.grid(color=GRID, linewidth=0.8, which="major")
+    ax_d.legend(loc="upper left", frameon=False, fontsize=8)
+    ax_d.set_xlabel("Tool time (s)", color=INK2)
+    ax_d.set_ylabel("zellkonverter time (s)", color=INK2)
+    ax_d.set_title("D   h5ad → Seurat-readable: paired with zellkonverter", loc="left", fontsize=11, color=INK)
+
+    fig.suptitle("The paper's fig3 from this run, scx added (median of 3 runs per case; only converted cases)",
+                 x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    save(fig, path)
+
+
 def write(rows, paper, out):
     out = Path(out)
     agg = collect(rows)
     (out / "tables.md").write_text(tables(agg) + "\n" + "\n".join(paper_tables(rows, paper, agg)))
     fig_tools(agg, out / "tools")
     fig_phases(agg, out / "phases")
+    fig_paper3(rows, out / "fig3")
