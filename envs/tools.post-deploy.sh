@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-# Seurat 5.4.0 (no R 4.5 conda build) and the GitHub-only converters, from a
-# CRAN snapshot dated to crosscell's benchmark run (results/*.json: 2026-02-12).
+# The two GitHub-only converters, at main HEAD as of 2026-11-05 (unchanged
+# since the paper's run). Missing R deps come from current CRAN.
 set -euo pipefail
 Rscript --vanilla -e '
-  options(repos = c(CRAN = "https://packagemanager.posit.co/cran/2026-02-12"), Ncpus = 8)
-  remotes::install_version("Seurat", "5.4.0", upgrade = "never")
-  # crosscell installed both from main; pinned to main as of 2026-02-12.
+  options(repos = c(CRAN = "https://cloud.r-project.org"), Ncpus = 8)
   remotes::install_github("settylab/convert2anndata@550bfb07fc", upgrade = "never")
   remotes::install_github("xleizi/easySCF/r@0a5a667720", upgrade = "never")
   for (p in c("Seurat", "zellkonverter", "anndataR", "convert2anndata", "easySCFr"))

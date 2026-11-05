@@ -56,14 +56,15 @@ software_environments:
   tools:
     name: all converters in one env (as crosscell's Dockerfile.benchmark)
     description: >-
-      R 4.5 + zellkonverter 1.20.1 + anndataR 1.0.0 + anndata 0.12.9 from conda;
-      Seurat 5.4.0, convert2anndata, easySCFr/easySCFpy in post-deploy. The
+      Latest R, Seurat, zellkonverter, anndataR, anndata from conda (the paper
+      ran older ones, e.g. anndataR 1.0.0); convert2anndata, easySCFr from
+      GitHub in post-deploy (scripts/run.sh). The
       crosscell (paper's prebuilt 0.1.0), scx and denet binaries are side-loaded
       via $CROSSCELL_BIN, $SCX_BIN, $DENET (see README).
     conda: envs/tools.yml
   scx:
     name: scx routes into Seurat
-    description: picklerick 0.5.0 + BPCells + SeuratObject (Bioc 3.22 generation)
+    description: picklerick 0.5.0 + BPCells + SeuratObject
     conda: envs/scx.yml
   py:
     name: python (staging, summary)

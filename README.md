@@ -4,7 +4,7 @@ The CrossCell paper benchmark ([crosscell](https://github.com/biodancerwangzhi/c
 `benchmark/`, runner `scripts/run_benchmark.py` recovered from git `a910b12`), ported to an
 omnibenchmark plan at `api_version: "0.8.0"`. Same 55 test cases (42 Seurat RDS v4/v5,
 13 H5AD) from the same Zenodo record, the same 5 tools with their exact commands, the same
-measurement (3 runs, median wall, GNU-time ru_maxrss, 600 s timeout), the same
+measurement (3 runs, median wall, GNU-time ru_maxrss, 600 s timeout) on current tool versions, the same
 n_cells x n_genes check. Plus scx arms.
 
 ```
@@ -26,8 +26,8 @@ export CROSSCELL_DATA=$PWD/data                  # where fetch.sh unpacked; modu
 export CROSSCELL_BIN=$PWD/data/crosscell         # cp ../crosscell/benchmark/crosscell; chmod +x  (the paper's 0.1.0 binary)
 export SCX_BIN=~/phd/scx/target/release/scx      # cargo build --release -p scx-cli
 export DENET=$(command -v denet)
-ob run benchmark.yaml --dirty -k --cores 16      # full run: omni / hainan, not the laptop
-ob run benchmark.yaml --dirty -k --cores 8 --filter slice.obfilter.yaml   # laptop slice: 3 v5 RDS + 2 small H5AD
+scripts/run.sh --cores 16                                      # full run: omni / hainan, not the laptop
+scripts/run.sh --cores 8 --filter slice.obfilter.yaml          # laptop slice: 3 v5 RDS + 2 small H5AD
 ```
 
 The slice needs only `scripts/fetch.sh h5ad_small seurat_v5`.
@@ -44,11 +44,12 @@ Results: `out/SUMMARY.tables.*/results.tsv` (one row per case x tool, phases as 
   `scx_bpcells` (`scx convert -> .bpcells`, `BPCells::open_matrix_dir`, `CreateSeuratObject`;
   X + dimnames only, no meta.data). `scx` itself does rds -> h5ad.
 - **Validation** uses R's `readRDS` only; the original tried `crosscell inspect` first.
-- **Envs.** conda instead of the paper's Docker image. Seurat has no R 4.5 conda build, so
-  Seurat 5.4.0 and the GitHub-only tools (convert2anndata `550bfb0`, easySCFr `0a5a667`,
-  main as of the paper's run date) install in `envs/tools.post-deploy.sh` from a dated CRAN
-  snapshot. scx arms get their own env: picklerick needs a newer Bioconductor generation than
-  zellkonverter 1.20.1.
+- **Versions.** Current releases, not the paper's: conda envs, unpinned, instead of its Docker
+  image (e.g. anndataR 1.2.x vs the paper's 1.0.0, Seurat 5.5 vs 5.4). The paper's pass rates
+  are a baseline to compare against, not a target. convert2anndata and easySCFr are GitHub-only
+  and install in `envs/tools.post-deploy.sh`, which ob does not carry into `out/.envs/`:
+  `scripts/run.sh` puts it there. scx arms get their own env (picklerick's Bioconductor
+  generation).
 - **Ids.** api 0.8 ids are `[A-Za-z0-9_]`: `celegans.embryo` -> `celegans_embryo`,
   `thp1.eccite` -> `thp1_eccite`.
 
