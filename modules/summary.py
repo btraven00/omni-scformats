@@ -20,9 +20,10 @@ for p in many.get("perf", []):
     rows[(r["test_id"], r["tool"])] = r
 for p in many.get("check", []):
     c = json.loads(Path(p).read_text())
-    rows[(c["test_id"], c["tool"])]["check"] = c["status"]
+    rows[(c["test_id"], c["tool"])].update(check=c["status"], failed=",".join(c.get("failed", [])),
+                                           scx_diff_agrees=c.get("scx_diff_agrees", ""))
 
-cols = ["test_id", "tool", "direction", "status", "check", "conversion_time_seconds",
+cols = ["test_id", "tool", "direction", "status", "check", "failed", "scx_diff_agrees", "conversion_time_seconds",
         "peak_memory_mb", "output_file_size_mb", "all_times", "all_mems", "phases", "output", "error"]
 with res.open("w", newline="") as fh:
     w = csv.DictWriter(fh, cols, delimiter="\t", extrasaction="ignore")
@@ -40,7 +41,7 @@ for r in rows.values():
     ok[k] += r["status"] == "success"
     val[k] += r.get("check") == "valid"
 cell = lambda c, t, ds: (lambda a, b: f"{a}/{b} ({100 * a // b}%)" if b else "N/A")(sum(c[t, d] for d in ds), sum(n[t, d] for d in ds))
-lines = ["| Tool | rds_to_h5ad | h5ad_to_rds | Total | Validated (dims) |", "|---|---|---|---|---|"]
+lines = ["| Tool | rds_to_h5ad | h5ad_to_rds | Total | Faithful (all properties) |", "|---|---|---|---|---|"]
 for t in tools:
     if any(n[t, d] for d in dirs):
         lines.append(f"| {t} | {cell(ok, t, dirs[:1])} | {cell(ok, t, dirs[1:])} | {cell(ok, t, dirs)} | {cell(val, t, dirs)} |")

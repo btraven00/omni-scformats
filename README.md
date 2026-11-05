@@ -44,10 +44,15 @@ Results: `out/SUMMARY.tables.*/results.tsv` (one row per case x tool, phases as 
   an interchange format (scx `docs/rds-write.md`), and opening the file is the consumer's job,
   not the converter's. The original tools keep writing `.rds`. TO_SEURAT's declared
   `<tool>.seurat` is a symlink to what the tool wrote.
-- **Validation** reads input and output with the format's own reader (`anndata`, `readRDS` +
-  SeuratObject, `BPCells::open_matrix_hdf5` for `.h5seurat`) and compares n_cells x n_genes.
-  The original compared against its test matrix, whose dims are wrong for 4 of 13 h5ad cases
-  (`scanpy_pbmc3k_processed`, the 3 CELLxGENE files), and tried `crosscell inspect` first.
+- **Validation is value-level**, not n_cells x n_genes. `modules/snapshot.{py,R}` read input
+  and output with the format's own reader (anndata; `readRDS` + SeuratObject; rhdf5 + BPCells
+  for `.h5seurat`) into one neutral layout; `modules/compare.py` checks names, every obs/var
+  column (type class, values, NA mask) and every matrix (exact when integer-valued, rtol 1e-6
+  otherwise). Fail: names changed or reordered, a column dropped, a type class changed, a
+  matrix not found in the output. Notes: level order, extra columns, float32 storage; a passing
+  matrix records where it landed (`RNA/counts = X`). `scx diff --json` runs alongside as a
+  cross-check; disagreement is flagged, not resolved. Test: `modules/test_compare.py`.
+  The original's test-matrix dims were also wrong for 4 of 13 h5ad cases.
 - **Versions.** Current releases, not the paper's: conda envs, unpinned, instead of its Docker
   image (e.g. anndataR 1.2.x vs the paper's 1.0.0, Seurat 5.5 vs 5.4). The paper's pass rates
   are a baseline to compare against, not a target. convert2anndata and easySCFr are GitHub-only

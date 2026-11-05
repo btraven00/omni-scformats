@@ -113,11 +113,12 @@ TAIL_TMPL = """
       - {id: perf, path: "{module.id}.perf.json"}
     modules:
 %s
-  # Output check, as crosscell's validate_output.py: open the file with the
-  # format's own reader (anndata / readRDS / BPCells), n_cells x n_genes,
-  # compared with the input read the same way. Not with the test matrix's
-  # numbers: 4 of its 13 h5ad cases list wrong dims (e.g. scanpy_pbmc3k_processed
-  # 2700 cells; the file has 2638).
+  # Fidelity check (the original checked n_cells x n_genes only). Input and
+  # output are read by their format's own reader (anndata; readRDS +
+  # SeuratObject; rhdf5 + BPCells for .h5seurat) into a neutral snapshot and
+  # compared property by property: names, obs/var columns (type class, values,
+  # NA), every matrix (exact if integer-valued, else rtol 1e-6).
+  # `scx diff --json` is recorded alongside as a cross-check, never the judge.
   - id: CHECK_H5AD
     inputs: [out_h5ad, rds]
     outputs:
