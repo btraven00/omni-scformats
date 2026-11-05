@@ -1,6 +1,6 @@
 # Every converter in one env, as crosscell's Dockerfile.benchmark does (one
 # image, 5 tools), but on current releases, not the paper's (it ran anndataR
-# 1.0.0, Seurat 5.4.0, anndata 0.12.x). Unpinned: resolved versions are
+# 1.0.0, Seurat 5.4.0, anndata 0.12.x). Unpinned except anndata (below): versions are
 # recorded per run in the conda env and in out/.metadata. convert2anndata and
 # easySCFr are GitHub-only: tools.post-deploy.sh.
 name: crosscell-repro-tools
