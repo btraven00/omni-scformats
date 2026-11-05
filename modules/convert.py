@@ -217,6 +217,7 @@ def measure(cmd, timeout, tag, out_dir):
     shutil.rmtree(obkit_dir, ignore_errors=True)  # obkit appends
     obkit_dir.mkdir()
     status.unlink(missing_ok=True)
+    log = raw / f"{tag}.log"  # denet -q swallows the child's stdout/stderr, so keep them here
     denet = os.environ.get("DENET") or shutil.which("denet")
     if not denet:
         sys.exit("denet not found: set DENET (static binary, side-loaded like ../omni-scx)")
@@ -224,7 +225,7 @@ def measure(cmd, timeout, tag, out_dir):
     # inside and read back (../omni-scx/modules/measure.sh).
     full = ["/usr/bin/time", "-v", "-o", str(time_file),
             denet, "-j", "-o", str(denet_file), "-q", "-i", "50", "-m", "50", "run", "--",
-            "bash", "-c", 'f="$1"; shift; "$@"; echo $? > "$f"', "_", str(status), *cmd]
+            "bash", "-c", 'f="$1"; l="$2"; shift 2; "$@" > "$l" 2>&1; echo $? > "$f"', "_", str(status), str(log), *cmd]
     start = time.time()
     try:
         r = subprocess.run(full, capture_output=True, text=True, timeout=timeout,
@@ -235,7 +236,7 @@ def measure(cmd, timeout, tag, out_dir):
     rc = int(status.read_text()) if status.exists() else 127
     m = re.search(r"Maximum resident set size \(kbytes\): (\d+)", time_file.read_text() if time_file.exists() else "")
     peak = int(m.group(1)) / 1024.0 if m else 0.0
-    err = "" if rc == 0 else (r.stdout + "\n" + r.stderr).strip()
+    err = "" if rc == 0 else (log.read_text(errors="replace") if log.exists() else r.stderr).strip()
     return rc == 0, elapsed, peak, err, phases(obkit_dir, denet_file)
 
 
