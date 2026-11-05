@@ -170,9 +170,11 @@ def obkit_windows(obkit_dir):
     return out
 
 
-def scx_windows(log, start):
-    """scx's own INFO timestamps: start-up, metadata (+obsm/varm) read, the
-    matrix stream (read, convert and write in one pass), finalize (incl. hash)."""
+def scx_windows(log, start, end):
+    """scx's own INFO timestamps. "starting conversion" is logged after the input
+    is opened (for .rds, the whole file parsed), so process start -> metadata/
+    obsm read is `read`; then the matrix stream (read, convert, write in one
+    pass); then finalize, output hash and sidecar up to process exit = `write`."""
     at = {}
     for line in log.splitlines():
         m = re.match(r"(?:\x1b\[[0-9;]*m)*(\d{4}-\d\d-\d\dT[\d:.]+Z)", line)
@@ -183,8 +185,7 @@ def scx_windows(log, start):
     if not {"start", "matrix", "end"} <= at.keys():
         return []
     read_end = at.get("aux", at.get("meta", at["start"]))
-    return [("load", start, at["start"]), ("read", at["start"], read_end),
-            ("stream", read_end, at["matrix"]), ("write", at["matrix"], at["end"])]
+    return [("read", start, read_end), ("stream", read_end, at["matrix"]), ("write", at["matrix"], end)]
 
 
 def crosscell_windows(log, start):
@@ -212,7 +213,7 @@ def phases(windows, denet_file):
             samples.append((a["ts_ms"] / 1000, a["mem_rss_kb"] / 1024))
     out = {}
     for event, t0, t1 in windows:
-        peak = max((m for t, m in samples if t0 <= t <= t1), default=0.0)
+        peak = max((m for t, m in samples if t0 <= t <= t1), default=0.0)  # 0: no sample inside
         s, p = out.get(event, [0.0, 0.0])
         out[event] = [round(s + t1 - t0, 3), round(max(p, peak), 1)]
     return out
@@ -251,7 +252,7 @@ def measure(cmd, timeout, tag, out_dir):
     windows = obkit_windows(obkit_dir)
     if not windows and log.exists():  # the binaries: phases from their own log
         text = log.read_text(errors="replace")
-        windows = scx_windows(text, start) if tag.startswith("scx.") else \
+        windows = scx_windows(text, start, start + elapsed) if tag.startswith("scx.") else \
             crosscell_windows(text, start) if tag.startswith("crosscell.") else []
     return rc == 0, elapsed, peak, err, phases(windows, denet_file)
 

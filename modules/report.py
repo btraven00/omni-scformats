@@ -30,7 +30,7 @@ PHASES = [  # (display name, convert.py phase names, colour)
     ("read", ["read", "read_fallback"], "#eb6834"),
     ("convert", ["convert", "convert_fallback"], "#eda100"),
     ("matrix stream (scx: read, convert, write in one pass)", ["stream"], "#e87ba4"),
-    ("write (saveRDS / h5ad)", ["write"], "#008300"),
+    ("write (saveRDS / h5ad; scx: finalize, flush, hashes)", ["write"], "#008300"),
 ]
 PHASE_OF = {raw: name for name, raws, _ in PHASES for raw in raws}
 
@@ -65,7 +65,8 @@ def collect(rows):
             p[1] = max(p[1], mb)
         for name, (secs, mb) in per.items():
             a["phases"][name][0].append(secs)
-            a["phases"][name][1].append(mb)
+            if mb > 0:  # 0 = no denet sample fell inside a phase shorter than 50 ms
+                a["phases"][name][1].append(mb)
     return agg
 
 
@@ -158,7 +159,7 @@ def tables(agg):
             a = agg.get((d, t))
             if not a or not a["phases"]:
                 continue
-            cells = [f"{fmt_s(st.median(s))} / {fmt_mb(st.median(m))}" if s else ""
+            cells = [(f"{fmt_s(st.median(s))} / {fmt_mb(st.median(m))}" if m else fmt_s(st.median(s))) if s else ""
                      for s, m in (a["phases"].get(n, ([], [])) for n, _, _ in PHASES)]
             md.append(f"| {t} | {d} | " + " | ".join(cells) + " |")
     return "\n".join(md) + "\n"
