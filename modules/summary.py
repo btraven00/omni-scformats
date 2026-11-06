@@ -22,10 +22,13 @@ for p in many.get("check", []):
     c = json.loads(Path(p).read_text())
     rows[(c["test_id"], c["tool"])].update(check=c["status"], failed=",".join(c.get("failed", [])),
                                            properties=c.get("properties", []),
+                                           failed_detail=json.dumps({x["property"]: x.get("detail", "")
+                                                                     for x in c.get("properties", [])
+                                                                     if x["status"] == "fail"}),
                                            scx_diff_agrees=c.get("scx_diff_agrees", ""))
 paper = [r for p in many.get("paper_fidelity", []) for r in json.loads(Path(p).read_text())]
 
-cols = ["test_id", "tool", "direction", "status", "check", "failed", "scx_diff_agrees", "conversion_time_seconds",
+cols = ["test_id", "tool", "direction", "status", "check", "failed", "failed_detail", "scx_diff_agrees", "conversion_time_seconds",
         "peak_memory_mb", "output_file_size_mb", "all_times", "all_mems", "phases", "output", "error"]
 with (odir / "results.tsv").open("w", newline="") as fh:
     w = csv.DictWriter(fh, cols, delimiter="\t", extrasaction="ignore")

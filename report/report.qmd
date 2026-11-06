@@ -98,6 +98,97 @@ Markdown(f"`scx diff` agrees with our check on {agree['True']} of {agree['True']
          "checked outputs; it is a second opinion, never the verdict.")
 ```
 
+## Fidelity failures by category
+
+Share of converted cases failing at least one property of each kind (darker = more). Click a
+cell for the cases behind it and the check's own message; "not converted" lists the tool's last
+error line. Categories come from the check's message for each failed property.
+
+```{python}
+#| output: asis
+import html
+
+KINDS = ["not converted", "cell / gene names", "column dropped", "column type changed",
+         "column values / NA", "matrix missing", "matrix values"]
+
+def fail_kind(prop, detail):
+    if prop in ("obs_names", "var_names"):
+        return "cell / gene names"
+    if prop.startswith("matrix/"):
+        return "matrix missing" if "no output matrix" in detail else "matrix values"
+    if "column dropped" in detail:
+        return "column dropped"
+    if detail.startswith("type "):
+        return "column type changed"
+    return "column values / NA"
+
+cells = defaultdict(list)  # (tool, direction, kind) -> [(case, property, detail)]
+total = Counter()
+for (case, tool), r in rows.items():
+    if case == "type_test":
+        continue
+    d = r["direction"]
+    if r["status"] != "success":
+        cells[(tool, d, "not converted")].append((case, "", r["error"]))
+        continue
+    total[(tool, d)] += 1
+    det = json.loads(r.get("failed_detail") or "{}")
+    for p in filter(None, r["failed"].split(",")):
+        cells[(tool, d, fail_kind(p, det.get(p, "")))].append((case, p, det.get(p, "")))
+
+data, trs = {}, []
+for d, label in R.DIRS.items():
+    trs.append(f'<tr><th colspan="{len(KINDS) + 1}" class="dir">{label}</th></tr>')
+    for t in R.TOOLS:
+        n = total[(t, d)] + len({c for c, _, _ in cells[(t, d, "not converted")]})
+        if not n:
+            continue
+        tds = []
+        for k in KINDS:
+            hits = cells[(t, d, k)]
+            nc = len({c for c, _, _ in hits})
+            denom = n if k == "not converted" else max(total[(t, d)], 1)
+            frac = nc / denom
+            key = f"{t}|{d}|{k}"
+            data[key] = hits
+            tds.append(f'<td class="hm" data-k="{html.escape(key)}" style="--f:{frac:.3f}" '
+                       f'title="{nc}/{denom}">{nc or ""}</td>')
+        trs.append(f'<tr><th>{t}</th>{"".join(tds)}</tr>')
+
+head = "".join(f"<th>{k}</th>" for k in KINDS)
+print(f"""
+<div class="fidwrap"><table class="fid"><thead><tr><th></th>{head}</tr></thead>
+<tbody>{"".join(trs)}</tbody></table>
+<div id="fidpanel"><em>Click a cell.</em></div></div>
+<script>
+const FID = {json.dumps(data)};
+document.querySelectorAll('td.hm').forEach(td => td.onclick = () => {{
+  document.querySelectorAll('td.hm.sel').forEach(x => x.classList.remove('sel'));
+  td.classList.add('sel');
+  const [t, d, k] = td.dataset.k.split('|'), hits = FID[td.dataset.k] || [];
+  const esc = s => s.replace(/[&<>]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}}[c]));
+  document.getElementById('fidpanel').innerHTML =
+    `<h4>${{t}} · ${{d}} · ${{k}} (${{hits.length}})</h4>` + (hits.length ? '<ul>' + hits.map(([c, p, m]) =>
+      `<li><b>${{esc(c)}}</b>${{p ? ' <code>' + esc(p) + '</code>' : ''}}<br><span>${{esc(m)}}</span></li>`).join('') + '</ul>' : '<em>none</em>');
+}});
+</script>
+<style>
+.fidwrap {{ display: flex; gap: 1.2em; align-items: flex-start; flex-wrap: wrap; }}
+table.fid {{ border-collapse: collapse; font-size: 0.85em; }}
+table.fid th {{ text-align: left; padding: 3px 6px; font-weight: 500; }}
+table.fid thead th {{ writing-mode: vertical-rl; transform: rotate(180deg); vertical-align: bottom; }}
+table.fid th.dir {{ padding-top: 0.8em; font-weight: 600; }}
+td.hm {{ width: 2.6em; height: 1.9em; text-align: center; cursor: pointer; border: 1px solid #fff;
+  background: color-mix(in srgb, #c0392b calc(var(--f) * 100%), #f4f3f0);
+  color: color-mix(in srgb, #fff calc(var(--f) * 200% - 60%), #222); }}
+td.hm.sel {{ outline: 2px solid #222; }}
+#fidpanel {{ flex: 1 1 22em; max-height: 32em; overflow: auto; font-size: 0.85em;
+  border-left: 3px solid #ddd; padding-left: 0.8em; }}
+#fidpanel span {{ color: #555; word-break: break-word; }}
+</style>
+""")
+```
+
 ## Figures
 
 ::: {.panel-tabset}
