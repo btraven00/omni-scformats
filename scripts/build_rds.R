@@ -40,10 +40,13 @@ read_mat <- function(g, genes, cells) {
     m <- as(t(h5read(f, g)), "CsparseMatrix")
   } else {
     sh <- as.integer(attrs(g)[["shape"]])
-    m <- new("dgCMatrix", i = as.integer(h5read(f, paste0(g, "/indices"))),
-             p = as.integer(h5read(f, paste0(g, "/indptr"))),
-             x = as.numeric(h5read(f, paste0(g, "/data"))),
-             Dim = if (enc == "csr_matrix") rev(sh) else sh)
+    i <- as.integer(h5read(f, paste0(g, "/indices"))); p <- as.integer(h5read(f, paste0(g, "/indptr")))
+    x <- as.numeric(h5read(f, paste0(g, "/data"))); d <- if (enc == "csr_matrix") rev(sh) else sh
+    # anndata allows unsorted indices within a row; dgCMatrix does not: sparseMatrix sorts
+    # (extended/PLAN.md step 3 plumbing fix 3)
+    m <- tryCatch(new("dgCMatrix", i = i, p = p, x = x, Dim = d),
+                  error = function(e) sparseMatrix(i = i, p = p, x = x, dims = d, index1 = FALSE, repr = "C"))
+    rm(i, p, x)
     if (enc == "csc_matrix") m <- t(m)
   }
   dimnames(m) <- list(genes, cells)

@@ -161,3 +161,10 @@ Correction to fix 1: the rds was right after all. Rebuilt ext_S1 still failed th
 the builder, changed the values. Fix 2: snapshot.R restores the stored meta.data after the update.
 This reader also serves `plan.yaml`'s CHECK_H5AD, so those checks are rerun too. The builder change
 of fix 1 is kept (harmless: it restores values the constructor may overwrite).
+
+## Step 3 plumbing fix 3 (build failure, ext_S5)
+
+`build_rds.R` failed on ext_S5: `invalid class "dgCMatrix" object: 'i' slot is not increasing
+within columns`. The source h5ad stores unsorted column indices within rows (valid for anndata /
+scipy). The builder now falls back to `Matrix::sparseMatrix`, which sorts. Values unchanged; the
+gate checks that. Recorded as an input property: converters see this file as CELLxGENE serves it.
