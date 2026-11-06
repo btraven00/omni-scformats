@@ -11,11 +11,11 @@ so per-dataset n is 11, not 42.
 
 | tool | converted | faithful | wall | excl. start-up | range | peak RSS |
 |---|--:|--:|--:|--:|--:|--:|
-| scx | 36/42 | 13/42 | 2.5 s | 2.5 s | 0.6–7.8 | 246 MB |
+| scx | 36/42 | 14/42 | 2.5 s | 2.5 s | 0.6–7.8 | 246 MB |
 | crosscell | 42/42 | 0/42 | 5.2 s | 5.2 s | 0.6–22.0 | 1.6 GB |
-| anndataR | 41/42 | 35/42 | 12.8 s | 9.1 s | 6.0–29.3 | 2.0 GB |
-| zellkonverter | 41/42 | 9/42 | 19.3 s | 10.8 s | 12.2–36.2 | 2.6 GB |
-| convert2anndata | 19/42 | 5/42 | 23.1 s | 14.8 s | 14.7–44.5 | 2.9 GB |
+| anndataR | 41/42 | 34/42 | 12.8 s | 9.1 s | 6.0–29.3 | 2.0 GB |
+| zellkonverter | 41/42 | 8/42 | 19.3 s | 10.8 s | 12.2–36.2 | 2.6 GB |
+| convert2anndata | 19/42 | 4/42 | 23.1 s | 14.8 s | 14.7–44.5 | 2.9 GB |
 | easySCF | 41/42 | 0/42 | 18.2 s | 14.6 s | 6.3–51.1 | 2.1 GB |
 
 ## h5ad → Seurat-readable
