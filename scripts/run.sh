@@ -11,7 +11,8 @@ cd "$(dirname "$0")/.."
 # (reticulate and `python3` then pick the venv's python, not the conda env's).
 OB="${OB:-$HOME/lab/omnibenchmark/.venv/bin/ob}"
 unset VIRTUAL_ENV
-$OB run benchmark.yaml --dry --dirty "$@" >/dev/null
+PLAN="${PLAN:-plan.yaml}"   # PLAN=plan-extended.yaml for our extension
+$OB run "$PLAN" --dry --dirty "$@" >/dev/null
 out=out; prev=""; for a in "$@"; do [[ "$prev" == "--out-dir" ]] && out="$a"; prev="$a"; done
 cp envs/tools.post-deploy.sh "$out/.envs/tools.post-deploy.sh"
-exec $OB run benchmark.yaml --dirty -k "$@"
+exec $OB run "$PLAN" --dirty -k "$@"

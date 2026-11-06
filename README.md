@@ -31,9 +31,13 @@ For timings worth quoting, `scripts/seq_timing.sh` re-runs every conversion one 
 (into `out-seq/`, ~5 h on hainan) and swaps those timings into `out/`.
 
 The slice only needs `scripts/fetch.sh h5ad_small seurat_v5`. Results end up in
-`out/SUMMARY.tables.*/`: `results.tsv` (one row per case and tool) and `pass_rates.md`.
+`out/SUMMARY.tables.*/`: `results.tsv` (one row per case and tool), `tables.md` and figures.
+Copy them into `report/` and `scripts/report.sh` renders `report/report.html` (Quarto): summaries,
+and every figure twice, per case as the paper counts them and per dataset (the 42 rds cases are
+11 datasets in up to 4 variants). Figures are redrawn from `results.tsv`, so edit labels in
+`modules/report.py` and re-render; no rerun needed.
 
-`benchmark.yaml` is generated from the paper's test matrix; edit `scripts/gen_plan.py`, not the YAML.
+`plan.yaml` is generated from the paper's test matrix; edit `scripts/gen_plan.py`, not the YAML.
 
 ## How it differs from the paper
 

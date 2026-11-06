@@ -3,3 +3,9 @@ out/
 .snakemake/
 __pycache__/
 out-seq/
+*.pdf
+.*.swp
+out-*/
+report/report.html
+report/*.quarto_ipynb
+report/report_files/

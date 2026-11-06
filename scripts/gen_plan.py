@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Write benchmark.yaml from config/benchmark_testcases.json (copied verbatim
+"""Write plan.yaml from config/benchmark_testcases.json (copied verbatim
 from crosscell@af3ea57 benchmark/config/). One DATA module per test case, so
 module id == test_id (dots -> underscores: api 0.8 ids are [A-Za-z0-9_]).
 
-    python3 scripts/gen_plan.py > benchmark.yaml
+    python3 scripts/gen_plan.py > plan.yaml
 """
 import json
 from pathlib import Path

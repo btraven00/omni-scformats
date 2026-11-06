@@ -33,6 +33,7 @@ PHASES = [  # (display name, convert.py phase names, colour)
     ("write (saveRDS / h5ad; scx: finalize, flush, hashes)", ["write"], "#008300"),
 ]
 PHASE_OF = {raw: name for name, raws, _ in PHASES for raw in raws}
+UNIT = "case"  # "dataset" while drawing the by-dataset versions (write())
 
 
 def fmt_s(s):
@@ -136,6 +137,13 @@ def paper_tables(rows, paper, agg):
 
 
 def tables(agg):
+    if UNIT == "dataset":
+        md = ["# By dataset", "",
+              "As above, but one row per dataset: the 4 variants of an rds dataset (v4/v5 × raw/processed)",
+              "count once, with the median over its converted variants. Faithful = every variant faithful.",
+              "Converted = at least one variant converted. n = 11 rds and 13 h5ad datasets.", ""]
+        md += tables_body(agg)
+        return "\n".join(md) + "\n"
     md = ["# CrossCell benchmark, reproduced", "",
           "Per tool and direction: cases converted / cases, cases passing every fidelity property,",
           "then wall time and peak RSS (GNU time ru_maxrss) as the median over converted cases of",
@@ -143,6 +151,11 @@ def tables(agg):
           "R + package loading (4–10 s per run), which a user converting inside an R session",
           "doesn't pay. The 42 rds cases are 11 datasets in up to 4 variants (v4/v5 × raw/processed),",
           "so per-dataset n is 11, not 42.", ""]
+    return "\n".join(md + tables_body(agg)) + "\n"
+
+
+def tables_body(agg):
+    md = []
     for d, label in DIRS.items():
         md += [f"## {label}", "", "| tool | converted | faithful | wall | excl. start-up | range | peak RSS |",
                "|---|--:|--:|--:|--:|--:|--:|"]
@@ -168,7 +181,7 @@ def tables(agg):
             cells = [(f"{fmt_s(st.median(s))} / {fmt_mb(st.median(m))}" if m else fmt_s(st.median(s))) if s else ""
                      for s, m in (a["phases"].get(n, ([], [])) for n, _, _ in PHASES)]
             md.append(f"| {t} | {d} | " + " | ".join(cells) + " |")
-    return "\n".join(md) + "\n"
+    return md
 
 
 def style(ax):
@@ -224,7 +237,7 @@ def fig_tools(agg, path):
     axes[0].invert_yaxis()
     handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in DIR_COLOR.values()]
     fig.legend(handles, DIRS.values(), loc="upper right", ncol=2, frameon=False, fontsize=9)
-    fig.suptitle("CrossCell test cases: median over converted cases (ticks: each case)",
+    fig.suptitle(f"CrossCell test cases: median over converted {UNIT}s (ticks: each {UNIT})",
                  x=0.01, ha="left", fontsize=12, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     save(fig, path)
@@ -269,7 +282,7 @@ def fig_phases(agg, path):
     ax2.set_title("Peak RSS within each phase (GB)", loc="left", fontsize=11, color=INK, pad=8)
     ax2.set_xlim(left=0)
     handles = [plt.Rectangle((0, 0), 1, 1, color=c) for n, _, c in PHASES if n in used]
-    fig.suptitle("By phase, median over converted cases (bar ends: sum of the phase medians)",
+    fig.suptitle(f"By phase, median over converted {UNIT}s (bar ends: sum of the phase medians)",
                  x=0.01, ha="left", fontsize=12, color=INK)
     fig.legend(handles, [n for n, _, _ in PHASES if n in used], loc="upper left",
                bbox_to_anchor=(0.01, 0.95), ncol=min(3, len(handles)), frameon=False, fontsize=9)
@@ -295,9 +308,34 @@ def case_meta():
     for cases in json.loads(cfg.read_text())["test_cases"].values():
         for c in cases:
             tid = c["test_id"].replace(".", "_")
-            meta[tid] = {"nnz": c.get("nnz") or NNZ_MISSING.get(tid),
+            meta[tid] = {"nnz": c.get("nnz") or NNZ_MISSING.get(tid), "dataset": c["dataset"].replace(".", "_"),
                          "cat": f"{c['seurat_version']} {c['type']}" if c.get("seurat_version") else ""}
+    for ds in {m["dataset"] for m in list(meta.values())}:  # by-dataset rows: median nnz of the variants
+        nn = [m["nnz"] for m in meta.values() if m.get("dataset") == ds and m["nnz"]]
+        meta.setdefault(ds, {"nnz": st.median(nn) if nn else None, "dataset": ds, "cat": "dataset"})
     return meta
+
+
+def by_dataset(rows):
+    """One row per (dataset, tool): converted if any variant converted, time / RSS / phases as the
+    median over converted variants, faithful only if every variant is."""
+    ds = {k: m["dataset"] for k, m in case_meta().items()}
+    groups = defaultdict(list)
+    for (case, tool), r in rows.items():
+        groups[(ds.get(case, case), tool)].append(r)
+    out = {}
+    for key, rs in groups.items():
+        ok = [r for r in rs if r["status"] == "success"]
+        r = {**rs[0], "test_id": key[0], "status": "success" if ok else rs[0]["status"],
+             "check": "valid" if all(r.get("check") == "valid" for r in rs) else "invalid"}
+        if ok:
+            r["conversion_time_seconds"] = st.median(x["conversion_time_seconds"] for x in ok)
+            r["peak_memory_mb"] = st.median(x["peak_memory_mb"] for x in ok)
+            names = {n for x in ok for n in x.get("phases", {})}
+            r["phases"] = {n: [st.median(x["phases"][n][i] for x in ok if n in x.get("phases", {})) for i in (0, 1)]
+                           for n in names}
+        out[key] = r
+    return out
 
 
 def fig_paper3(rows, path):
@@ -334,9 +372,10 @@ def fig_paper3(rows, path):
                  facecolors="none", edgecolors=TOOL_COLOR["scx"], linewidths=1.4, zorder=3, label="scx")
     fit(ax_a, [meta[c]["nnz"] / 1e6 for c in sx], [r["conversion_time_seconds"] for r in sx.values()],
         TOOL_COLOR["scx"], "scx")
-    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in cat_color.values()]
+    cats = [k for k in cat_color if any(meta[c]["cat"] == k for c in cc)]
+    handles = [plt.Rectangle((0, 0), 1, 1, color=cat_color[k]) for k in cats]
     h2, l2 = ax_a.get_legend_handles_labels()
-    ax_a.legend(handles + h2, [f"crosscell {k}" for k in cat_color] + l2, loc="upper left", frameon=False, fontsize=8)
+    ax_a.legend(handles + h2, [f"crosscell {k}" for k in cats] + l2, loc="upper left", frameon=False, fontsize=8)
     ax_a.set_xlabel("Non-zero elements (millions)", color=INK2)
     ax_a.set_ylabel("Conversion time (s)", color=INK2)
     ax_a.set_title("A   Time vs nnz (rds → h5ad)", loc="left", fontsize=11, color=INK)
@@ -411,7 +450,7 @@ def fig_paper3(rows, path):
     ax_d.set_ylabel("zellkonverter time (s)", color=INK2)
     ax_d.set_title("D   h5ad → Seurat-readable: paired with zellkonverter", loc="left", fontsize=11, color=INK)
 
-    fig.suptitle("The paper's fig3 from this run, scx added (median of 3 runs per case; only converted cases)",
+    fig.suptitle(f"The paper's fig3 from this run, scx added (one point per {UNIT}; only converted {UNIT}s)",
                  x=0.01, ha="left", fontsize=12, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     save(fig, path)
@@ -421,6 +460,24 @@ def write(rows, paper, out):
     out = Path(out)
     agg = collect(rows)
     (out / "tables.md").write_text(tables(agg) + "\n" + "\n".join(paper_tables(rows, paper, agg)))
+    write_figures(rows, out)
+
+
+def write_figures(rows, out):
+    """Figures, per case and by dataset, plus tables_by_dataset.md: everything results.tsv can
+    rebuild (report/report.qmd calls this; the paper's tables need paper_fidelity JSONs)."""
+    global UNIT
+    agg = collect(rows)
     fig_tools(agg, out / "tools")
     fig_phases(agg, out / "phases")
     fig_paper3(rows, out / "fig3")
+    # The same, one row per dataset (pseudoreplication: 42 rds cases are 11 datasets).
+    UNIT, ds_rows = "dataset", by_dataset(rows)
+    try:
+        agg = collect(ds_rows)
+        (out / "tables_by_dataset.md").write_text(tables(agg))
+        fig_tools(agg, out / "tools_by_dataset")
+        fig_phases(agg, out / "phases_by_dataset")
+        fig_paper3(ds_rows, out / "fig3_by_dataset")
+    finally:
+        UNIT = "case"

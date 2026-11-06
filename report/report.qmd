@@ -1,0 +1,126 @@
+---
+title: "CrossCell benchmark, reproduced"
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: false
+jupyter: python3
+---
+
+```{python}
+# Everything below is rebuilt from results.tsv (pipeline output, copied here), so
+# label edits in modules/report.py show up without rerunning the benchmark.
+# tables.md (paper's checks) comes from the pipeline as is: it needs the
+# paper-fidelity JSONs, which results.tsv does not carry.
+import csv, json, sys
+from collections import Counter, defaultdict
+from pathlib import Path
+from IPython.display import Markdown
+
+sys.path.insert(0, str(Path("../modules").resolve()))
+import report as R
+
+rows = {}
+for r in csv.DictReader(open("results.tsv"), delimiter="\t"):
+    for k in ("conversion_time_seconds", "peak_memory_mb"):
+        r[k] = float(r[k]) if r[k] else None
+    r["phases"] = json.loads(r["phases"] or "{}")
+    rows[(r["test_id"], r["tool"])] = r
+R.write_figures(rows, Path("."))
+ds_rows = R.by_dataset(rows)
+
+def md_table(head, body):
+    return "\n".join(["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
+                     + ["| " + " | ".join(map(str, b)) + " |" for b in body])
+```
+
+## Headline
+
+Converted = every run exited 0. Faithful = passed every property of our check (names, obs/var
+columns, matrices). "By dataset" counts each dataset once: the 42 rds cases are 11 datasets in up
+to 4 variants (v4/v5 × raw/processed); a dataset is faithful only if every variant is.
+
+```{python}
+def counts(rs):
+    c = defaultdict(lambda: [0, 0, 0])  # n, converted, faithful
+    for (case, tool), r in rs.items():
+        if case == "type_test":
+            continue
+        x = c[(r["direction"], tool)]
+        x[0] += 1; x[1] += r["status"] == "success"; x[2] += r.get("check") == "valid"
+    return c
+
+cc, cd = counts(rows), counts(ds_rows)
+out = []
+for d, label in R.DIRS.items():
+    body = [[t, f"{cc[(d, t)][1]}/{cc[(d, t)][0]}", f"{cc[(d, t)][2]}/{cc[(d, t)][0]}",
+             f"{cd[(d, t)][1]}/{cd[(d, t)][0]}", f"{cd[(d, t)][2]}/{cd[(d, t)][0]}"]
+            for t in R.TOOLS if (d, t) in cc]
+    out += [f"**{label}**", "",
+            md_table(["tool", "converted (cases)", "faithful (cases)", "converted (datasets)", "faithful (datasets)"], body), ""]
+Markdown("\n".join(out))
+```
+
+## What fails
+
+Cases failing at least one property, by kind of property (a case can count in several).
+
+```{python}
+def kind(p):
+    return "names" if p in ("obs_names", "var_names") else p.split("/")[0]
+
+body = []
+for d in R.DIRS:
+    for t in R.TOOLS:
+        rs = [r for (c, tt), r in rows.items() if tt == t and r["direction"] == d and c != "type_test"
+              and r["status"] == "success"]
+        if not rs:
+            continue
+        k = Counter(x for r in rs for x in {kind(p) for p in r["failed"].split(",") if p})
+        body.append([t, R.DIRS[d], len(rs)] + [k.get(x, 0) for x in ("names", "obs", "var", "matrix")])
+Markdown(md_table(["tool", "direction", "converted", "names", "obs", "var", "matrix"], body))
+```
+
+Conversions that did not finish (exit ≠ 0 or timeout), with the tool's last error line:
+
+```{python}
+body = [[t, r["direction"], c, r["error"][:140].replace("|", "/")]
+        for (c, t), r in sorted(rows.items(), key=lambda kv: (kv[0][1], kv[0][0]))
+        if r["status"] != "success" and c != "type_test"]
+Markdown(md_table(["tool", "direction", "case", "error"], body))
+```
+
+```{python}
+agree = Counter(r["scx_diff_agrees"] for r in rows.values() if r["scx_diff_agrees"])
+Markdown(f"`scx diff` agrees with our check on {agree['True']} of {agree['True'] + agree['False']} "
+         "checked outputs; it is a second opinion, never the verdict.")
+```
+
+## Figures
+
+::: {.panel-tabset}
+### Per case (as the paper)
+![](tools.png)
+
+![](phases.png)
+
+![](fig3.png)
+
+### By dataset
+![](tools_by_dataset.png)
+
+![](phases_by_dataset.png)
+
+![](fig3_by_dataset.png)
+:::
+
+## Tables
+
+```{python}
+#| output: asis
+# demote the files' headings one level under "Tables"
+for f in ("tables.md", "tables_by_dataset.md"):
+    print("\n".join("#" + l if l.startswith("#") else l for l in Path(f).read_text().splitlines()), "\n")
+```
