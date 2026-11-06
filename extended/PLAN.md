@@ -154,3 +154,10 @@ source obs already carries these columns (submitter's values); `CreateSeuratObje
 from `counts` and overwrote them. Builder bug: `build_rds.R` now writes the source obs columns back
 after construction. ext_S1 rebuilt and re-gated; the failing gate JSON is kept as
 `ext_S1.gate.run1.json`.
+
+Correction to fix 1: the rds was right after all. Rebuilt ext_S1 still failed the same way, and
+`readRDS` showed the stored values (7195, 6671, …) intact; `modules/snapshot.R` runs
+`UpdateSeuratObject`, which recomputes `nCount_RNA`/`nFeature_RNA`, so the reference reader, not
+the builder, changed the values. Fix 2: snapshot.R restores the stored meta.data after the update.
+This reader also serves `plan.yaml`'s CHECK_H5AD, so those checks are rerun too. The builder change
+of fix 1 is kept (harmless: it restores values the constructor may overwrite).

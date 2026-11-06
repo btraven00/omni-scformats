@@ -133,7 +133,11 @@ if (grepl("\\.h5seurat$", f)) {
   o <- readRDS(f)
   # Update old objects; an object Update rejects (e.g. a malformed DimReduc) is
   # still read as is: the slots compared here don't depend on it.
+  md <- o@meta.data
   o <- tryCatch(suppressMessages(suppressWarnings(UpdateSeuratObject(o))), error = function(e) o)
+  # UpdateSeuratObject recomputes nCount_/nFeature_ columns: the reader reports what
+  # the file stores, so the stored meta.data goes back
+  if (identical(rownames(md), Cells(o))) o@meta.data <- md
   writeLines(Cells(o), file.path(out, "obs_names.txt"))
   writeLines(rownames(o), file.path(out, "var_names.txt"))
   columns(file.path(out, "obs"), o[[]])
