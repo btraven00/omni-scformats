@@ -179,3 +179,6 @@ gate checks that. Recorded as an input property: converters see this file as CEL
   the slope is the same); points are every run of every converted rung. A direction with fewer than
   3 converted rungs is "not evaluable", reported as such.
 - `scripts/verdict.py` prints the verdicts from the SUMMARY's `results.tsv`.
+- Step 4 reading: our check compares one snapshot of each input with itself (tests compare.py);
+  `scx diff f f` must exit 0. `.rds` inputs: scx cannot read .rds, so `scx diff` on them is
+  expected to exit non-zero with a format error; for .rds only our check counts.
