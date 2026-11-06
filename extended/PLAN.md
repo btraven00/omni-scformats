@@ -137,3 +137,20 @@ primary assay per bin.
 Ladder source: the Neural Organoid Atlas (`3a805b8d…`, first accepted L dataset ≥ 1M cells).
 Rungs 10k–300k get an rds; the 1M rung (≈ 2.2 × 10^9 nnz) does not.
 Open: S is 2/5 spatial (Slide-seqV2), as drawn.
+
+## Step 3 implementation readings
+
+- Gate direction: `compare(h5ad snapshot, rds snapshot)`, h5ad as reference, so the columns
+  `CreateSeuratObject` adds (`orig.ident`, `nCount_RNA`, `nFeature_RNA` when absent from obs) are
+  extra columns (a note), not failures. Columns the source has must survive with their values.
+- Download check: file size equals the listing's `filesize` (the listing gives no md5); hapiq's
+  sha256 is recorded in `extended_inputs.json`.
+- Ladder rungs are written by one pass in the ladder lane; rds per rung as for the datasets.
+
+## Step 3 plumbing fix 1 (gate failure, ext_S1)
+
+Gate on ext_S1 failed: `obs/nCount_RNA: 5094 values differ` and `obs/nFeature_RNA` likewise. The
+source obs already carries these columns (submitter's values); `CreateSeuratObject` recomputed them
+from `counts` and overwrote them. Builder bug: `build_rds.R` now writes the source obs columns back
+after construction. ext_S1 rebuilt and re-gated; the failing gate JSON is kept as
+`ext_S1.gate.run1.json`.

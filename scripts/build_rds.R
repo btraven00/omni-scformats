@@ -65,5 +65,8 @@ if (has("/raw/X")) {
 assay <- CreateAssay5Object(counts = counts, data = data)
 assay <- AddMetaData(assay, var)
 obj <- CreateSeuratObject(counts = assay, assay = "RNA", meta.data = obs)
+# CreateSeuratObject recomputes nCount_/nFeature_<assay>, overwriting a source obs column of
+# that name: put the source's values back (extended/PLAN.md, step 3 plumbing fix 1)
+obj@meta.data[names(obs)] <- obs
 saveRDS(obj, out)
 cat(out, ncol(obj), "cells", nrow(obj), "genes\n")
