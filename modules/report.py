@@ -458,6 +458,8 @@ def fig_paper3(rows, path):
 
 def write(rows, paper, out):
     out = Path(out)
+    if any(c.startswith(("ext_", "ladder_")) for c, _ in rows):
+        return write_extended(rows, out)
     agg = collect(rows)
     (out / "tables.md").write_text(tables(agg) + "\n" + "\n".join(paper_tables(rows, paper, agg)))
     write_figures(rows, out)
@@ -481,3 +483,107 @@ def write_figures(rows, out):
         fig_paper3(ds_rows, out / "fig3_by_dataset")
     finally:
         UNIT = "case"
+
+
+# --- plan-extended.yaml (extended/PLAN.md) -------------------------------------------------
+
+BINS = {"S": "S: 5k–20k cells", "M": "M: 50k–200k cells", "L": "L: 500k–2M cells",
+        "ladder": "Ladder: one dataset, nested subsamples (reported apart)"}
+
+
+def ext_meta():
+    """input name -> bin, n_cells, nnz estimate; names as scripts/build_extended.py makes them."""
+    import json
+    cfg = json.loads((Path(__file__).resolve().parent.parent / "config/extended.json").read_text())
+    meta, n = {}, {}
+    for d in cfg["datasets"]:
+        n[d["bin"]] = n.get(d["bin"], 0) + 1
+        meta[f"ext_{d['bin']}{n[d['bin']]}"] = {"bin": d["bin"], "n_cells": d["n_cells"], "nnz": d["nnz_est"],
+                                                "title": d["title"]}
+    for r in cfg["ladder"]["rungs"]:
+        meta[f"ladder_{r['rung']}"] = {"bin": "ladder", "n_cells": r["n_cells"], "nnz": r["nnz_est"]}
+    # plan-extended.yaml's module ids: <name>_rds / <name>_h5ad
+    return {f"{k}_{s}": v for k, v in meta.items() for s in ("rds", "h5ad")}
+
+
+def runs(r, key):
+    v = r.get(key) or []
+    if isinstance(v, str):
+        import json
+        v = json.loads(v) if v else []
+    return [float(x) for x in v]
+
+
+def ladder_slopes(rows, meta):
+    """(direction, tool, 'time'|'rss') -> (slope, lo, hi, n): OLS of log10 value on log10 n_cells
+    over every run of every converted rung, 95 % t interval (extended/PLAN.md, C2)."""
+    from scipy import stats
+    pts = defaultdict(list)
+    for (case, tool), r in rows.items():
+        m = meta.get(case)
+        if not m or m["bin"] != "ladder" or r["status"] != "success":
+            continue
+        for key, col in (("time", "all_times"), ("rss", "all_mems")):
+            pts[(r["direction"], tool, key)] += [(m["n_cells"], v) for v in runs(r, col) if v > 0]
+    out = {}
+    import math
+    for k, p in pts.items():
+        if len({x for x, _ in p}) < 3:
+            continue
+        f = stats.linregress([math.log10(x) for x, _ in p], [math.log10(y) for _, y in p])
+        t = stats.t.ppf(0.975, len(p) - 2)
+        out[k] = (f.slope, f.slope - t * f.stderr, f.slope + t * f.stderr, len(p))
+    return out
+
+
+def fig_ladder(rows, meta, path):
+    slopes = ladder_slopes(rows, meta)
+    fig, axes = plt.subplots(2, 2, figsize=(13, 10))
+    fig.patch.set_facecolor(SURFACE)
+    for i, d in enumerate(DIRS):
+        for j, (key, col, ylabel) in enumerate([("time", "conversion_time_seconds", "Wall time (s)"),
+                                                ("rss", "peak_memory_mb", "Peak RSS (MB)")]):
+            ax = axes[i, j]
+            style(ax)
+            ax.grid(color=GRID, linewidth=0.8, which="major")
+            for t in TOOLS:
+                pts = sorted((meta[c]["n_cells"], r[col]) for (c, tt), r in rows.items()
+                             if tt == t and r["direction"] == d and c in meta and meta[c]["bin"] == "ladder"
+                             and r["status"] == "success")
+                if not pts:
+                    continue
+                s = slopes.get((d, t, key))
+                lab = f"{t}  slope {s[0]:.2f} [{s[1]:.2f}, {s[2]:.2f}]" if s else t
+                ax.plot([x for x, _ in pts], [y for _, y in pts], "-", marker=TOOL_MARKER.get(t, "o"),
+                        color=TOOL_COLOR[t], label=lab, markersize=6)
+            ax.set_xscale("log"); ax.set_yscale("log")
+            ax.set_xlabel("Cells", color=INK2); ax.set_ylabel(ylabel, color=INK2)
+            ax.set_title(f"{DIRS[d]}: {ylabel.split(' (')[0].lower()}", loc="left", fontsize=11, color=INK)
+            ax.legend(loc="upper left", frameon=False, fontsize=8)
+    fig.suptitle("Ladder: one dataset subsampled 10k → 1M cells (median of 3 runs; slope = log–log, 95 % CI;"
+                 " a missing point = failed or timed out)", x=0.01, ha="left", fontsize=11, color=INK)
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    save(fig, path)
+
+
+def write_extended(rows, out):
+    global UNIT
+    meta = ext_meta()
+    md = ["# CrossCell benchmark, extended", "",
+          "Datasets drawn from CELLxGENE by the rule frozen in extended/PLAN.md; one row per dataset.",
+          "Columns as in plan.yaml's report. The ladder is one dataset and is reported apart.", ""]
+    UNIT = "dataset"
+    try:
+        for b, label in BINS.items():
+            sub = {k: r for k, r in rows.items() if meta.get(k[0], {}).get("bin") == b}
+            if not sub:
+                continue
+            agg = collect(sub)
+            md += [f"# {label}", ""] + tables_body(agg) + [""]
+            fig_tools(agg, out / f"tools_{b}")
+        fig_phases(collect({k: r for k, r in rows.items() if meta.get(k[0], {}).get("bin") in ("S", "M", "L")}),
+                   out / "phases")
+        fig_ladder(rows, meta, out / "ladder")
+    finally:
+        UNIT = "case"
+    (out / "tables.md").write_text("\n".join(md) + "\n")

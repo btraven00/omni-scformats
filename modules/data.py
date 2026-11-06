@@ -16,6 +16,9 @@ if not src.is_file():
 
 manifest = json.loads((root / "zenodo/manifest.json").read_text())
 want = {d["file"]: d["sha256"] for arch in manifest["datasets"].values() for d in arch}
+ext = root / "data/generated/extended_inputs.json"  # plan-extended.yaml: scripts/build_extended.py
+if ext.is_file():
+    want.update({k: v["sha256"] for k, v in json.loads(ext.read_text()).items()})
 h = hashlib.sha256()
 with open(src, "rb") as f:
     for chunk in iter(lambda: f.read(1 << 20), b""):

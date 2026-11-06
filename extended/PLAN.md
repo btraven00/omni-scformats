@@ -168,3 +168,14 @@ of fix 1 is kept (harmless: it restores values the constructor may overwrite).
 within columns`. The source h5ad stores unsorted column indices within rows (valid for anndata /
 scipy). The builder now falls back to `Matrix::sparseMatrix`, which sorts. Values unchanged; the
 gate checks that. Recorded as an input property: converters see this file as CELLxGENE serves it.
+
+## Step 5–6 implementation readings (written before any conversion is run)
+
+- Module ids are `<input>_rds` and `<input>_h5ad` (e.g. `ext_S1_rds`): results are keyed by
+  (test id, tool), and a dataset is an input to both directions.
+- C1 is evaluated per bin × direction × other tool, on datasets both converted; "faster" = lower
+  median wall over its 3 runs. C1 passes only if every such comparison is ≥ 80 %.
+- C2 is evaluated per direction; the regressor is log10 cells (rungs are nested, so nnz ∝ cells and
+  the slope is the same); points are every run of every converted rung. A direction with fewer than
+  3 converted rungs is "not evaluable", reported as such.
+- `scripts/verdict.py` prints the verdicts from the SUMMARY's `results.tsv`.
