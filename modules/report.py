@@ -208,8 +208,8 @@ def fig_tools(agg, path):
                 med = st.median(vals)
                 ax.barh(y, med, height=h, color=DIR_COLOR[d], linewidth=0)
                 ax.scatter(vals, [y] * len(vals), marker="|", s=60, color=INK, linewidths=1, zorder=3)
-                ax.text(max(vals) * 1.12, y, f"{fmt(med)}  ({a['ok']}/{a['n']})", va="center",
-                        fontsize=8, color=INK2)
+                note = f"{a['ok']}/{a['n']} converted, {a['faithful']} faithful" if key == "wall" else f"{a['ok']}/{a['n']}"
+                ax.text(max(vals) * 1.12, y, f"{fmt(med)}  ({note})", va="center", fontsize=8, color=INK2)
         ax.set_xscale("log")
         if key == "wall":
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g} s"))
@@ -219,11 +219,8 @@ def fig_tools(agg, path):
         ax.set_title(title, loc="left", fontsize=11, color=INK, pad=8)
         ax.set_xlim(right=ax.get_xlim()[1] * 6)
 
-    def label(t):
-        f = [f"{agg[(d, t)]['faithful']}/{agg[(d, t)]['n']}" for d in DIRS if (d, t) in agg]
-        return f"{t}\nfaithful {' · '.join(f)}"
     axes[0].set_yticks(range(len(tools)))
-    axes[0].set_yticklabels([label(t) for t in tools], fontsize=9, color=INK)
+    axes[0].set_yticklabels(tools, fontsize=10, color=INK)
     axes[0].invert_yaxis()
     handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in DIR_COLOR.values()]
     fig.legend(handles, DIRS.values(), loc="upper right", ncol=2, frameon=False, fontsize=9)
