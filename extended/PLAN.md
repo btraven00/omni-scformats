@@ -108,4 +108,4 @@ slope CI comes from the OLS fit on 5 rungs × 3 runs.
 5. Generate `plan-extended.yaml`; run conversions one at a time, then checks and summary.
 6. `scripts/verdict.py` prints C1–C3; record "Step 6 done" with the tables verbatim.
 
-FROZEN at commit: (filled in by the next commit)
+FROZEN at commit: 6ed4cbd (PLAN.md §1–6 and scripts/select_datasets.py; later changes are appended below as corrections or amendments)
