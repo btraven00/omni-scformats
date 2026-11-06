@@ -1,0 +1,423 @@
+{
+ "seed": 20261106,
+ "datasets": [
+  {
+   "bin": "S",
+   "dataset_id": "cb716935-d9d3-4bab-8155-d32d229c1a95",
+   "collection_id": "d74b6979-efba-47cd-990a-9d80ccf29055",
+   "title": "E9.0: Puck_220718_19",
+   "assay": "Slide-seqV2",
+   "organism": [
+    "Mus musculus"
+   ],
+   "n_cells": 5094,
+   "nnz_est": 2911893,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/6eb5a2c9-6e49-4794-8079-994e36276fe5.h5ad",
+   "filesize": 20822173
+  },
+  {
+   "bin": "S",
+   "dataset_id": "607e7a20-f623-4150-93d5-b7ebc0af6fbf",
+   "collection_id": "8e880741-bf9a-4c8e-9227-934204631d2a",
+   "title": "Spatial transcriptomics in mouse: Puck_200131_20",
+   "assay": "Slide-seqV2",
+   "organism": [
+    "Mus musculus"
+   ],
+   "n_cells": 18162,
+   "nnz_est": 5799708,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/51a3899e-b41e-4aff-9f66-92520a00c695.h5ad",
+   "filesize": 16189774
+  },
+  {
+   "bin": "S",
+   "dataset_id": "31b985c0-db79-49db-aad0-376f38e5386d",
+   "collection_id": "0fd39ad7-5d2d-41c2-bda0-c55bde614bdb",
+   "title": "striatum.GAD",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Callithrix jacchus"
+   ],
+   "n_cells": 5907,
+   "nnz_est": 19477290,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/5fa9fb6c-608c-4de0-b4a7-ad4b7d5c3790.h5ad",
+   "filesize": 93821999
+  },
+  {
+   "bin": "S",
+   "dataset_id": "492d9f77-c4c8-485d-92d7-7686fe6c8482",
+   "collection_id": "29f92179-ca10-4309-a32b-d383d80347c1",
+   "title": "74 years old female - Airway Wash (3 days post-intubation)",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 5834,
+   "nnz_est": 16573434,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/68710c98-d3c8-4248-b597-a5022ad6a923.h5ad",
+   "filesize": 84894061
+  },
+  {
+   "bin": "S",
+   "dataset_id": "2b868c88-eb35-492d-ba7d-4f2d0ff3ff33",
+   "collection_id": "ab6823e0-506e-461b-b1f9-d30e69a01687",
+   "title": "Immune cells from integrated dataset of 20 donors",
+   "assay": "10x 3' v2",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 14656,
+   "nnz_est": 27589254,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/8c07af85-1cc8-4ef9-a157-ed34382f17cb.h5ad",
+   "filesize": 176178119
+  },
+  {
+   "bin": "M",
+   "dataset_id": "f28376c8-2ca0-419f-8e22-543f71457eb3",
+   "collection_id": "48c15b0c-6039-4e0f-9668-b6b3c0b830ad",
+   "title": "snRNA-seq of human of the human retinal pigment epithelium and the choroid - retinal pigment epithelial cells",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 69244,
+   "nnz_est": 179787928,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/469d0939-0439-4255-a9d0-e85a51770d01.h5ad",
+   "filesize": 829524220
+  },
+  {
+   "bin": "M",
+   "dataset_id": "c2a461b1-0c15-4047-9fcb-1f966fe55100",
+   "collection_id": "eb735cc9-d0a7-48fa-b255-db726bf365af",
+   "title": "Autoimmunity PBMCs",
+   "assay": "10x 5' v1",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 97499,
+   "nnz_est": 141566892,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/b112be5b-d8c9-455d-9a62-7b960e71a06d.h5ad",
+   "filesize": 713878221
+  },
+  {
+   "bin": "M",
+   "dataset_id": "d967b47c-a9e6-4337-b2f4-977f690cb67f",
+   "collection_id": "63d03351-06be-478e-a0db-f7a653b6b19b",
+   "title": "Trabecular Meshwork and Corneal Scleral wedge",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 52309,
+   "nnz_est": 142786858,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/bed454f9-4510-4c6f-a343-a5f63080ec48.h5ad",
+   "filesize": 691311824
+  },
+  {
+   "bin": "M",
+   "dataset_id": "120cbe1a-9434-4e23-84bd-f570ac32300c",
+   "collection_id": "ff69f0ee-fef6-4895-9f48-6c64a68c8289",
+   "title": "Healthy pediatric and adult human liver tissue",
+   "assay": "10x 3' v2",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 69032,
+   "nnz_est": 121050165,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/500364df-df28-4e3c-85a7-6f702ed1a0d9.h5ad",
+   "filesize": 1398941696
+  },
+  {
+   "bin": "M",
+   "dataset_id": "82f6af6d-5313-439a-9936-5e844be49a70",
+   "collection_id": "e02201d7-f49f-401f-baf0-1eb1406546c0",
+   "title": "Infant human neocortex cells",
+   "assay": "Drop-seq",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 51878,
+   "nnz_est": 68694865,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/182945c8-d6e7-4e49-b5f8-2c61d68bca14.h5ad",
+   "filesize": 157586258
+  },
+  {
+   "bin": "L",
+   "dataset_id": "0ba636a1-4754-4786-a8be-7ab3cf760fd6",
+   "collection_id": "48259aa8-f168-4bf5-b797-af8e88da6637",
+   "title": "HBCA - global",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 803283,
+   "nnz_est": 1650654346,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/ed8cdda6-9985-4a62-933a-eee60b11cb18.h5ad",
+   "filesize": 8336712858
+  },
+  {
+   "bin": "L",
+   "dataset_id": "3a805b8d-c9d8-4c9b-881f-0eefa635974d",
+   "collection_id": "de379e5f-52d0-498c-9801-0f850823c847",
+   "title": "The Human Neural Organoid Atlas",
+   "assay": "10x 3' v2",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 1767346,
+   "nnz_est": 3905436515,
+   "rds": false,
+   "url": "https://datasets.cellxgene.cziscience.com/127a3c9a-7bcb-4362-a73e-e60fd67f5bae.h5ad",
+   "filesize": 18777180012
+  },
+  {
+   "bin": "L",
+   "dataset_id": "8c0a3574-b0ad-4e4f-b5d3-d1a743b00d4a",
+   "collection_id": "4c6eaf5c-6d57-4c76-b1e9-60df8c655f1e",
+   "title": "snRNA-seq of human retina - amacrine cell subset",
+   "assay": "10x 3' v3",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 571579,
+   "nnz_est": 1708348778,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/7710a02a-55b2-4a81-a3d4-aba6b217386e.h5ad",
+   "filesize": 7758244648
+  },
+  {
+   "bin": "L",
+   "dataset_id": "74014ef8-d2d0-4cbc-8ba2-037f30753ffd",
+   "collection_id": "854c0855-23ad-4362-8b77-6b1639e7a9fc",
+   "title": "Hippocampus",
+   "assay": "10x 3' v2",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 676845,
+   "nnz_est": 1988764991,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/1ac0e7df-bfa9-4ae3-b930-7b77b16fcea8.h5ad",
+   "filesize": 9373178308
+  },
+  {
+   "bin": "L",
+   "dataset_id": "67b6b9ac-b841-42ce-b2d4-ed2ec12327bd",
+   "collection_id": "4429f25e-5c91-4981-9cf2-6a1044c36732",
+   "title": "Single cell atlas of LBCL (LME)",
+   "assay": "10x multiome",
+   "organism": [
+    "Homo sapiens"
+   ],
+   "n_cells": 598289,
+   "nnz_est": 1340307817,
+   "rds": true,
+   "url": "https://datasets.cellxgene.cziscience.com/777cf301-2f1a-4429-9bb9-19173ba586d2.h5ad",
+   "filesize": 6505896722
+  }
+ ],
+ "ladder": {
+  "source": "3a805b8d-c9d8-4c9b-881f-0eefa635974d",
+  "rungs": [
+   {
+    "rung": 10000,
+    "n_cells": 10000,
+    "nnz_est": 22097747,
+    "rds": true
+   },
+   {
+    "rung": 30000,
+    "n_cells": 30000,
+    "nnz_est": 66293242,
+    "rds": true
+   },
+   {
+    "rung": 100000,
+    "n_cells": 100000,
+    "nnz_est": 220977472,
+    "rds": true
+   },
+   {
+    "rung": 300000,
+    "n_cells": 300000,
+    "nnz_est": 662932416,
+    "rds": true
+   },
+   {
+    "rung": 1000000,
+    "n_cells": 1000000,
+    "nnz_est": 2209774722,
+    "rds": false
+   }
+  ]
+ },
+ "reserve_order": {
+  "S": [
+   "cb716935-d9d3-4bab-8155-d32d229c1a95",
+   "607e7a20-f623-4150-93d5-b7ebc0af6fbf",
+   "be110542-629f-4a0b-9ead-2b4d78b58a46",
+   "55b219e4-039f-4b54-bb9f-dc054dd1e274",
+   "56ce05c9-72f0-47ce-ab6d-f18711cf1be8",
+   "a4e3aaf0-09cc-40c2-83bb-af87d9bed4a2",
+   "31b985c0-db79-49db-aad0-376f38e5386d",
+   "492d9f77-c4c8-485d-92d7-7686fe6c8482",
+   "cb97280b-1c7c-4c55-a921-481062abd9f7",
+   "6dafb698-7a53-4699-ad13-1b5e2c164be7",
+   "2b868c88-eb35-492d-ba7d-4f2d0ff3ff33",
+   "df780eb5-2115-4b46-b322-d290fef136d6",
+   "44bb7ba4-75aa-4530-84af-c2a02c7a0148",
+   "968885c5-b652-48d9-9006-c34b5fc1c07a",
+   "78d59e4a-82eb-4a61-a1dc-da974d7ea54b",
+   "b35809be-bb71-47b3-be0c-df93b5bc2d01",
+   "aadde4d7-ecfe-47d1-bacf-7871779386c9",
+   "ce5132bd-7600-4299-bb2c-2b00d409170f",
+   "565138dc-f7a6-45be-960e-f14959d32824",
+   "670a9f65-363c-4bb1-a942-bf6d1edea179",
+   "ab5b2256-b209-48b5-a801-c5d9a8c0de56",
+   "5f4556b6-017e-49b3-b31c-c6e8e226c9fb",
+   "6e4f871d-fd7c-4909-8c14-e4c9957c2e8f",
+   "cd77258f-b08b-4c89-b93f-6e6f146b1a4d",
+   "00476f9f-ebc1-4b72-b541-32f912ce36ea",
+   "bd3e3487-c1e6-4298-b9de-8bdcf3f938d7",
+   "3b3da2d8-b7a5-4c33-ba60-d189fa208e2b",
+   "7432b873-1e96-4a8a-b97b-8921937f4afe",
+   "935e5c60-1ca6-44fb-ba3d-00d81e81a8f5",
+   "63d02cfd-0580-415d-8b34-ff4839af89e3",
+   "489318a0-24c3-4f5c-b105-f084ed0ea026",
+   "530c9bff-c552-45b9-be77-0de605e6858b",
+   "a1058181-73af-4436-ba0a-9e3925d1f1c7",
+   "fbf173f9-f809-4d84-9b65-ae205d35b523",
+   "e2094676-d4d5-400c-afa5-7ca3ec09025c",
+   "5b25a46f-f1cf-4caa-9e10-6ab81dfe9174",
+   "91b2327d-e3f3-4f63-b446-20774d20fc33",
+   "fb83600a-7823-426e-b06b-1fcd666a3cd8",
+   "45a4966b-3b49-45d3-9299-c7c3df76737e",
+   "e6930ca8-0ae9-4282-939e-538d27343d30",
+   "ffcdd182-500f-4603-9bdc-9f318e0a1c4e",
+   "b6203114-e133-458a-aed5-eed1028378b4",
+   "bf694f39-4342-4e75-aec0-d46db17f2036",
+   "9f1049ac-f8b7-45ad-8e31-6e96c3e5058f",
+   "00f15b43-f871-46d8-8105-814387ad8658",
+   "ec423499-4564-4ab4-a7c2-316c72788ead",
+   "8bf44fc5-f1a0-419d-a71c-760fd9b813e8",
+   "4502562d-24da-4a95-a873-bdbf6834209c",
+   "5106ea1a-947c-4a51-b29f-9db107392588",
+   "5e708434-f8a5-462e-b82f-007ba023d274"
+  ],
+  "M": [
+   "f28376c8-2ca0-419f-8e22-543f71457eb3",
+   "c2a461b1-0c15-4047-9fcb-1f966fe55100",
+   "d967b47c-a9e6-4337-b2f4-977f690cb67f",
+   "120cbe1a-9434-4e23-84bd-f570ac32300c",
+   "a2da8d7b-54a8-47d1-a0d3-aafcd0535f00",
+   "82f6af6d-5313-439a-9936-5e844be49a70",
+   "31f657dc-1875-4c4b-a5ca-ce63b3ef3a82",
+   "8a961a54-7e37-41e4-8e7b-463b23146b17",
+   "c6413315-7158-46c5-a5fd-7228385694f1",
+   "1873a18a-66fd-4a4d-8277-a872c93f5b59",
+   "228438db-5728-4e10-b660-56a54d9a24dd",
+   "983d5ec9-40e8-4512-9e65-a572a9c486cb",
+   "7674f8f4-7200-4f08-8412-eb114016a66f",
+   "89c1d36b-424d-4d04-a0f5-172c4f6c4549",
+   "ef7bb7f0-234d-459f-b613-b37cc7a4c70f",
+   "4057e00c-0678-454a-90e4-b341a162d007",
+   "e80b654f-37f3-43d0-a78a-8b9ff93c36a9",
+   "d45130d1-5588-40f0-90f4-2a7f69312b97",
+   "01b84709-139c-4485-98a9-6e14c58fbbf6",
+   "d6dfdef1-406d-4efb-808c-3c5eddbfe0cb",
+   "812fa7bd-db15-4357-b2c9-efc8e1eb0450",
+   "27159c75-90c9-4c5d-a4d7-b61fc296dff6",
+   "e374c7eb-d99f-4196-adb3-726eb89a37d1",
+   "ccda558a-27d5-4c58-bb79-2c079abe059f",
+   "0bf30b02-db97-4560-b9cd-0fe3588892af",
+   "2672b679-8048-4f5e-9786-f1b196ccfd08",
+   "1ab4ebbc-18d6-4838-89c2-cdc5b10accfb",
+   "fed1f5f6-f65a-4e95-89fd-eea106dff790",
+   "85c60876-7f35-40c5-a256-7808d84c6ba5",
+   "40e25c08-8d33-4768-89dd-501def6191d7",
+   "714e6bc2-d81d-4a5b-97de-818bf6ff3a1d",
+   "ec6ceff8-c8bc-488d-b6bf-30df2fa92169",
+   "64267fb5-7b70-4705-a13b-cc38966c22a8",
+   "52ea546e-9229-40ef-b048-a2e694dd73e8",
+   "ef0fc6ac-4872-40e1-ab24-e445b19ca6e3",
+   "be401db3-d732-408a-b0c4-71af0458b8ab",
+   "9ff9f9ba-016b-4cbb-8899-45dc20860b8b",
+   "4976b234-9028-4b4b-8a2f-8ac59d636219",
+   "90d4a63b-5c02-43eb-acde-c49345681601",
+   "ddb22b3d-a75c-4dd1-9730-dff7fc8ca530",
+   "f641d68a-e877-4bb8-afd7-b8fa3921d461",
+   "74520626-b0ba-4ee9-86b5-714649554def",
+   "586bc89e-a4a1-4f60-a7b4-3d191f982286",
+   "108c2b65-4ea9-4792-8b5b-451842faf35b",
+   "700aed19-c16e-4ba8-9191-07da098a8626",
+   "9d584fcb-a28a-4b91-a886-ceb66a88ef81",
+   "18eb630b-a754-4111-8cd4-c24ec80aa5ec",
+   "e34f3f89-3a48-4173-a06a-9e9803f2e2b9",
+   "234c23d0-d6cd-4612-a40d-e5811727564b",
+   "c3bf8bcf-abb7-4d71-8491-bd4901b474cf"
+  ],
+  "L": [
+   "0ba636a1-4754-4786-a8be-7ab3cf760fd6",
+   "3a805b8d-c9d8-4c9b-881f-0eefa635974d",
+   "8c0a3574-b0ad-4e4f-b5d3-d1a743b00d4a",
+   "74014ef8-d2d0-4cbc-8ba2-037f30753ffd",
+   "0e5c75da-7bc9-4a2c-83fc-ef1e378bd5f9",
+   "67b6b9ac-b841-42ce-b2d4-ed2ec12327bd",
+   "01ad3cd7-3929-4654-84c0-6db05bd5fd59",
+   "218acb0f-9f2f-4f76-b90b-15a4b7c7f629",
+   "c3aa4f95-7a18-4a7d-8dd8-ca324d714363",
+   "420d0f5d-b7ba-4b1e-88d0-44e9f733febd",
+   "946dc63a-760c-4a6c-9ed1-aa2f640d5183",
+   "0c0c49a2-b96b-432f-98a4-1decf9929149",
+   "1e6a6ef9-7ec9-4c90-bbfb-2ad3c3165fd1",
+   "1b52ee22-c71a-4a0f-a4d2-c1be36d0b82a",
+   "c2876b1b-06d8-4d96-a56b-5304f815b99a",
+   "842c6f5d-4a94-4eef-8510-8c792d1124bc",
+   "b0e547f0-462b-4f81-b31b-5b0a5d96f537",
+   "978a566a-dc27-478d-b306-26daba116c1f",
+   "d7291f04-fbbb-4d65-990a-f01fa44e915b",
+   "96a9b396-654b-4507-acaf-5019987250f0",
+   "bb0818d3-474e-44f4-a82a-169f3c62c94c",
+   "0a8e3443-c3e2-4918-84db-0495657d9175",
+   "960ecd06-e7c2-463d-9a5b-6832994376c6",
+   "98b68224-956d-45dd-9eca-538747578af8",
+   "48101fa2-1a63-4514-b892-53ea1d3a8657",
+   "350237e0-9f48-4cbd-9140-3b44495549f3",
+   "021fda2e-9c6d-44b8-ad36-22873259ecd8",
+   "598100f7-01da-4de4-998a-05917fd6c446",
+   "5fde5c9c-5b1e-4df5-982a-3f8e7635161f",
+   "b252b015-b488-4d5c-b16e-968c13e48a2c",
+   "22b83bd5-1886-4a90-82da-fa80123a90de",
+   "53d9dafe-deb9-40b2-8bb4-38774fc8fc02",
+   "ebc2e1ff-c8f9-466a-acf4-9d291afaf8b3",
+   "c92321dd-0503-47a8-8260-9970aed6c0b7",
+   "4568ebb2-468c-4381-9ce7-81cd97abcd22",
+   "9dbab10c-118d-496b-966a-67f1763a6b7d",
+   "4442d412-91cb-4261-acca-8adf5fa04c11",
+   "53d208b0-2cfd-4366-9866-c3c6114081bc",
+   "6d06c94d-25ff-4d7b-9a09-659289dd4621",
+   "d7f5d8d0-6150-48d7-b094-c34286ad11a1",
+   "3faad104-2ab8-4434-816d-474d8d2641db",
+   "440da0a0-f321-4f40-9080-bb04031681e5",
+   "1a38e762-2465-418f-b81c-6a4bce261c34",
+   "ef3055e1-0cad-40a3-961d-7110a323dc4f",
+   "fe067858-1282-46ea-9553-b8cd19167266",
+   "ae0cd1cb-636b-4d1c-b135-460dadcba980",
+   "8ef06ea4-8d0f-4303-a652-7d4604402b1f",
+   "6725ee8e-ef5b-4e68-8901-61bd14a1fe73",
+   "47e00f43-6176-44a5-b4d1-f88a1920fcab",
+   "c7775e88-49bf-4ba2-a03b-93f00447c958"
+  ]
+ }
+}

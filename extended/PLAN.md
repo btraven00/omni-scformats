@@ -109,3 +109,31 @@ slope CI comes from the OLS fit on 5 rungs × 3 runs.
 6. `scripts/verdict.py` prints C1–C3; record "Step 6 done" with the tables verbatim.
 
 FROZEN at commit: 6ed4cbd (PLAN.md §1–6 and scripts/select_datasets.py; later changes are appended below as corrections or amendments)
+
+## Step 2 done (2026-11-06)
+
+`uv run --with numpy python -I scripts/select_datasets.py extended/cxg_datasets.json.gz > config/extended.json`
+on the frozen snapshot (sha256 matches §2). Checks pass: 5 per bin, 15 distinct collections, ≤ 2 per
+primary assay per bin.
+
+| bin | cells | nnz (est.) | rds | assay | organism | title |
+|---|--:|--:|---|---|---|---|
+| S | 5,094 | 3M | yes | Slide-seqV2 | mouse | E9.0: Puck_220718_19 |
+| S | 18,162 | 6M | yes | Slide-seqV2 | mouse | Spatial transcriptomics in mouse: Puck_200131_20 |
+| S | 5,907 | 19M | yes | 10x 3' v3 | marmoset | striatum.GAD |
+| S | 5,834 | 17M | yes | 10x 3' v3 | human | 74 years old female - Airway Wash |
+| S | 14,656 | 28M | yes | 10x 3' v2 | human | Immune cells from integrated dataset of 20 donors |
+| M | 69,244 | 180M | yes | 10x 3' v3 | human | snRNA-seq of the human retinal pigment epithelium |
+| M | 97,499 | 142M | yes | 10x 5' v1 | human | Autoimmunity PBMCs |
+| M | 52,309 | 143M | yes | 10x 3' v3 | human | Trabecular Meshwork and Corneal Scleral wedge |
+| M | 69,032 | 121M | yes | 10x 3' v2 | human | Healthy pediatric and adult human liver tissue |
+| M | 51,878 | 69M | yes | Drop-seq | human | Infant human neocortex cells |
+| L | 803,283 | 1,651M | yes | 10x 3' v3 | human | HBCA - global |
+| L | 1,767,346 | 3,905M | **no** (> 2^31) | 10x 3' v2 | human | The Human Neural Organoid Atlas |
+| L | 571,579 | 1,708M | yes | 10x 3' v3 | human | snRNA-seq of human retina - amacrine cell subset |
+| L | 676,845 | 1,989M | yes | 10x 3' v2 | human | Hippocampus |
+| L | 598,289 | 1,340M | yes | 10x multiome | human | Single cell atlas of LBCL (LME) |
+
+Ladder source: the Neural Organoid Atlas (`3a805b8d…`, first accepted L dataset ≥ 1M cells).
+Rungs 10k–300k get an rds; the 1M rung (≈ 2.2 × 10^9 nnz) does not.
+Open: S is 2/5 spatial (Slide-seqV2), as drawn.
